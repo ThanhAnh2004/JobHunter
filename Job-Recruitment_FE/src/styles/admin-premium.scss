@@ -1,0 +1,301 @@
+// Premium Admin Light Theme (Modern Minimalist / Tailwind UI style)
+
+// Root Variables
+$admin-bg: #f8fafc;
+$border-color: #e2e8f0;
+$text-primary: #0f172a; // Slate-900 (High contrast)
+$text-secondary: #475569; // Slate-600
+$text-muted: #64748b; // Slate-500
+$primary-color: #1890ff;
+$active-bg-start: #e0f2fe; // Light blue
+$active-bg-end: #bae6fd;
+$active-border: #93c5fd;
+$active-text: #0369a1;
+
+// Global container for admin
+.layout-admin {
+  background: $admin-bg !important;
+  color: $text-primary !important;
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+
+  // Custom Scrollbar
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+
+  // Ant Design Sider Overrides
+  .ant-layout-sider {
+    background: #ffffff !important;
+    border-right: 1px solid $border-color;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.02) !important;
+
+    .ant-layout-sider-trigger {
+      background: #ffffff !important;
+      border-top: 1px solid $border-color;
+      border-right: 1px solid $border-color;
+      color: $text-muted;
+      &:hover {
+        color: $text-primary;
+      }
+    }
+  }
+
+  // Admin Logo styling
+  .admin-logo {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    border-bottom: 1px solid $border-color;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+
+    .anticon {
+      font-size: 20px;
+      color: #0284c7;
+      -webkit-text-fill-color: initial;
+    }
+  }
+
+  // Sider Menu Overrides (Light Theme)
+  .ant-menu {
+    background: transparent !important;
+    border-inline-end: none !important;
+
+    .ant-menu-item {
+      color: $text-secondary !important;
+      margin: 4px 12px !important;
+      width: calc(100% - 24px) !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease;
+
+      a {
+        color: $text-secondary !important;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .ant-menu-item-icon {
+        font-size: 16px;
+        color: $text-muted;
+        transition: transform 0.2s;
+      }
+
+      &:hover {
+        background: #f1f5f9 !important;
+        color: $text-primary !important;
+        
+        a {
+          color: $text-primary !important;
+        }
+        
+        .ant-menu-item-icon {
+          color: $text-primary;
+          transform: scale(1.1);
+        }
+      }
+
+      &.ant-menu-item-selected {
+        background: linear-gradient(135deg, $active-bg-start 0%, $active-bg-end 100%) !important;
+        border: 1px solid $active-border;
+        color: $active-text !important;
+
+        a {
+          color: $active-text !important;
+          font-weight: 600;
+        }
+
+        .ant-menu-item-icon {
+          color: $active-text !important;
+          transform: scale(1.05);
+        }
+      }
+    }
+  }
+
+  // Subcontent layout
+  .ant-layout {
+    background: transparent !important;
+  }
+
+  // Premium Header
+  .admin-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid $border-color;
+    height: 64px;
+    padding: 0 24px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: $text-secondary;
+      
+      .welcome-text {
+        font-weight: 500;
+        color: $text-primary;
+      }
+      
+      .ant-avatar {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 2px 8px rgba(3, 105, 161, 0.15);
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Content body
+  .ant-layout-content {
+    background: transparent !important;
+    padding: 24px !important;
+  }
+
+  // Premium Custom Cards
+  .premium-card {
+    background: #ffffff !important;
+    border: 1px solid $border-color !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    transition: all 0.2s ease !important;
+    overflow: hidden;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04) !important;
+      border-color: #cbd5e1 !important;
+    }
+
+    .ant-card-head {
+      border-bottom: 1px solid $border-color !important;
+      background: transparent !important;
+      
+      .ant-card-head-title {
+        color: $text-primary !important;
+        font-weight: 700;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .ant-card-body {
+      color: $text-secondary;
+    }
+  }
+
+  // Stat styling inside cards
+  .stat-card-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .stat-details {
+      .stat-title {
+        font-size: 12px;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        color: $text-primary;
+        line-height: 1.1;
+      }
+    }
+
+    .stat-icon-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+  }
+
+  // Ant Design Table Overrides for light theme integration
+  .ant-table {
+    background: #ffffff !important;
+    color: $text-primary !important;
+
+    .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      color: $text-primary !important;
+      font-weight: 700 !important;
+      border-bottom: 1px solid $border-color !important;
+    }
+
+    .ant-table-tbody > tr {
+      background: #ffffff !important;
+      border-bottom: 1px solid $border-color !important;
+      transition: background 0.15s;
+
+      &:hover > td {
+        background: #f8fafc !important;
+      }
+
+      td {
+        border-bottom: 1px solid $border-color !important;
+        color: $text-secondary !important;
+        font-size: 14px;
+      }
+    }
+  }
+
+  // Descriptions in modals/drawers
+  .ant-descriptions {
+    .ant-descriptions-item-label {
+      background: #f8fafc !important;
+      color: $text-primary !important;
+      border-bottom: 1px solid $border-color !important;
+      border-right: 1px solid $border-color !important;
+      font-weight: 600;
+    }
+    .ant-descriptions-item-content {
+      background: #ffffff !important;
+      color: $text-secondary !important;
+      border-bottom: 1px solid $border-color !important;
+      border-right: 1px solid $border-color !important;
+    }
+    border: 1px solid $border-color !important;
+  }
+
+  // Progress Bar styling overrides
+  .ant-progress-text {
+    color: $text-primary !important;
+    font-weight: 600;
+  }
+}
