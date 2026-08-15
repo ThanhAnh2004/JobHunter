@@ -5,19 +5,21 @@ services:
     image: mysql:8.0
     container_name: jobhunter-db
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       MYSQL_DATABASE: jobhunter
       MYSQL_ROOT_PASSWORD: your_mysql_password
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./Job-Recruitment-Java/jobhunter.sql:/docker-entrypoint-initdb.d/jobhunter.sql
     networks:
       - jobhunter-net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p", "your_mysql_password"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pyour_mysql_password"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   backend:
     build:
@@ -38,7 +40,7 @@ services:
       SPRING_MAIL_PASSWORD: ""
       GEMINI_API_KEY: ""
     volumes:
-      - upload-data:/app/upload
+      - ./upload:/app/upload
     networks:
       - jobhunter-net
 
