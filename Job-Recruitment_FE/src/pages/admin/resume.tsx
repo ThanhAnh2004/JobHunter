@@ -2,31 +2,43 @@ import DataTable from "@/components/client/data-table";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { IResume } from "@/types/backend";
 import { ActionType, ProColumns, ProFormSelect } from '@ant-design/pro-components';
-import { Space, message, notification, Segmented, Card, Tag, Badge, Popconfirm } from "antd";
+import { Space, message, notification, Segmented, Card, Tag, Badge, Popconfirm, Tooltip, Button } from "antd";
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { callDeleteResume, callUpdateResumeStatus } from "@/config/api";
 import queryString from 'query-string';
 import { fetchResume } from "@/redux/slice/resumeSlide";
 import ViewDetailResume from "@/components/admin/resume/view.resume";
+import ModalInterview from "@/components/admin/interview/modal.interview";
 import { ALL_PERMISSIONS } from "@/config/permissions";
 import { withBackendUrl } from "@/config/runtime";
 import Access from "@/components/share/access";
 import { sfIn } from "spring-filter-query-builder";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, MessageOutlined, CalendarOutlined } from "@ant-design/icons";
 
 const ResumePage = () => {
     const tableRef = useRef<ActionType>();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const isFetching = useAppSelector(state => state.resume.isFetching);
     const meta = useAppSelector(state => state.resume.meta);
     const resumes = useAppSelector(state => state.resume.result);
+    const currentUser = useAppSelector(state => state.account.user);
+    const isSuperAdmin = currentUser.email === 'admin@gmail.com' || currentUser.role?.name === 'SUPER_ADMIN';
+    const isHR = !isSuperAdmin && Boolean(currentUser?.company?.id);
+
     const dispatch = useAppDispatch();
 
     const [dataInit, setDataInit] = useState<IResume | null>(null);
     const [openViewDetail, setOpenViewDetail] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
     const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+
+    // Modal Interview state
+    const [openModalInterview, setOpenModalInterview] = useState<boolean>(false);
+    const [dataInitInterview, setDataInitInterview] = useState<any>(null);
 
     useEffect(() => {
         if (viewMode === 'kanban') {
@@ -49,7 +61,7 @@ const ResumePage = () => {
                 });
             }
         }
-    }
+    };
 
     const reloadTable = () => {
         if (viewMode === 'table') {
@@ -57,7 +69,7 @@ const ResumePage = () => {
         } else {
             dispatch(fetchResume({ query: 'page=1&size=100&sort=updatedAt,desc' }));
         }
-    }
+    };
 
     const handleStatusChange = async (id: string, status: string) => {
         const res = await callUpdateResumeStatus(id, status);
@@ -70,7 +82,24 @@ const ResumePage = () => {
                 description: res.message
             });
         }
-    }
+    };
+
+    const handleOpenInterviewModal = (entity: IResume) => {
+        const candidateId = entity?.user?.id || (entity as any)?.userId;
+        const candidateName = entity?.user?.name || entity?.email;
+        const jobId = entity?.job?.id || (typeof entity?.jobId === 'object' ? entity?.jobId?.id : entity?.jobId);
+        const jobName = entity?.job?.name || (typeof entity?.jobId === 'object' ? entity?.jobId?.name : '');
+
+        setDataInitInterview({
+            candidateId: candidateId,
+            candidateName: candidateName,
+            candidateEmail: entity?.email,
+            jobId: jobId,
+            jobName: jobName,
+            title: `Phỏng vấn vị trí ${jobName || ''} - Ứng viên ${candidateName || ''}`.trim(),
+        });
+        setOpenModalInterview(true);
+    };
 
     const columns: ProColumns<IResume>[] = [
         {
@@ -85,7 +114,7 @@ const ResumePage = () => {
                     }}>
                         {record.id}
                     </a>
-                )
+                );
             },
             hideInSearch: true,
         },
@@ -118,6 +147,7 @@ const ResumePage = () => {
             title: 'Company',
             dataIndex: "companyName",
             hideInSearch: true,
+            hideInTable: isHR,
         },
         {
             title: 'File CV',
@@ -128,52 +158,86 @@ const ResumePage = () => {
                     <a href={withBackendUrl(`/storage/resume/${record.url}`)} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>
                         {record.url}
                     </a>
-                )
+                );
             }
         },
 
         {
             title: 'CreatedAt',
             dataIndex: 'createdAt',
-            width: 200,
+            width: 170,
             sorter: true,
             render: (text, record, index, action) => {
                 return (
                     <>{record.createdAt ? dayjs(record.createdAt).format('DD-MM-YYYY HH:mm:ss') : ""}</>
-                )
+                );
             },
             hideInSearch: true,
         },
         {
             title: 'UpdatedAt',
             dataIndex: 'updatedAt',
-            width: 200,
+            width: 170,
             sorter: true,
             render: (text, record, index, action) => {
                 return (
                     <>{record.updatedAt ? dayjs(record.updatedAt).format('DD-MM-YYYY HH:mm:ss') : ""}</>
-                )
+                );
             },
             hideInSearch: true,
         },
         {
-
             title: 'Actions',
             hideInSearch: true,
-            width: 100,
+            width: 130,
             render: (_value, entity, _index, _action) => (
-                <Space>
-                    <EditOutlined
-                        style={{
-                            fontSize: 20,
-                            color: '#ffa500',
-                        }}
-                        type=""
-                        onClick={() => {
-                            setOpenViewDetail(true);
-                            setDataInit(entity);
-                        }}
-                    />
+                <Space size="middle">
+                    <Tooltip title="Đặt lịch phỏng vấn với ứng viên">
+                        <CalendarOutlined
+                            style={{
+                                fontSize: 19,
+                                color: '#10b981',
+                                cursor: 'pointer',
+                            }}
+                            onClick={() => handleOpenInterviewModal(entity)}
+                        />
+                    </Tooltip>
+
+                    <Tooltip title="Nhắn tin với ứng viên">
+                        <MessageOutlined
+                            style={{
+                                fontSize: 19,
+                                color: '#2563eb',
+                                cursor: 'pointer',
+                            }}
+                            onClick={() => {
+                                const candidateId = entity?.user?.id || (entity as any)?.userId;
+                                const jobId = entity?.job?.id || (typeof entity?.jobId === 'object' ? entity?.jobId?.id : entity?.jobId);
+                                if (candidateId) {
+                                    const targetUrl = location.pathname.startsWith('/hr')
+                                        ? `/hr/chat?candidateId=${candidateId}${jobId ? `&jobId=${jobId}` : ''}`
+                                        : `/hr/chat?candidateId=${candidateId}`;
+                                    navigate(targetUrl);
+                                } else {
+                                    navigate('/hr/chat');
+                                }
+                            }}
+                        />
+                    </Tooltip>
+
+                    <Tooltip title="Xem và sửa hồ sơ">
+                        <EditOutlined
+                            style={{
+                                fontSize: 19,
+                                color: '#ffa500',
+                                cursor: 'pointer',
+                            }}
+                            onClick={() => {
+                                setOpenViewDetail(true);
+                                setDataInit(entity);
+                            }}
+                        />
+                    </Tooltip>
 
                     <Access
                         permission={ALL_PERMISSIONS.RESUMES.DELETE}
@@ -187,10 +251,10 @@ const ResumePage = () => {
                             okText="Xác nhận"
                             cancelText="Hủy"
                         >
-                            <span style={{ cursor: "pointer", margin: "0 10px" }}>
+                            <span style={{ cursor: "pointer", margin: "0 4px" }}>
                                 <DeleteOutlined
                                     style={{
-                                        fontSize: 20,
+                                        fontSize: 19,
                                         color: '#ff4d4f',
                                     }}
                                 />
@@ -238,9 +302,8 @@ const ResumePage = () => {
             temp = `${temp}&${sortBy}`;
         }
 
-        // temp += "&populate=companyId,jobId&fields=companyId.id, companyId.name, companyId.logo, jobId.id, jobId.name";
         return temp;
-    }
+    };
 
     // Phân loại resume theo trạng thái
     const pendingResumes = resumes.filter(r => r.status === 'PENDING');
@@ -348,7 +411,7 @@ const ResumePage = () => {
                                             <div style={{ fontSize: '12px', color: '#8c8c8c', marginBottom: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                 <strong>Email:</strong> {item.email}
                                             </div>
-                                            <div style={{ fontSize: '12px', marginBottom: '8px' }}>
+                                            <div style={{ fontSize: '12px', marginBottom: '10px' }}>
                                                 <a href={withBackendUrl(`/storage/resume/${item.url}`)} target="_blank" rel="noreferrer" style={{ fontWeight: 600, color: '#1890ff' }}>
                                                     Xem CV ứng viên
                                                 </a>
@@ -359,10 +422,18 @@ const ResumePage = () => {
                                                 alignItems: 'center',
                                                 borderTop: '1px solid #f0f0f0',
                                                 paddingTop: '8px',
-                                                fontSize: '11px',
-                                                color: '#bfbfbf'
+                                                fontSize: '12px',
                                             }}>
-                                                <span>{dayjs(item.createdAt).format('DD-MM-YYYY HH:mm')}</span>
+                                                <a
+                                                    href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleOpenInterviewModal(item);
+                                                    }}
+                                                    style={{ color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}
+                                                >
+                                                    <CalendarOutlined /> Đặt lịch phỏng vấn
+                                                </a>
                                                 <a
                                                     href="#"
                                                     onClick={(e) => {
@@ -370,7 +441,7 @@ const ResumePage = () => {
                                                         setOpenViewDetail(true);
                                                         setDataInit(item);
                                                     }}
-                                                    style={{ color: '#1890ff', fontSize: '12px' }}
+                                                    style={{ color: '#1890ff' }}
                                                 >
                                                     Xem chi tiết
                                                 </a>
@@ -384,7 +455,7 @@ const ResumePage = () => {
                 })}
             </div>
         );
-    }
+    };
 
     return (
         <div>
@@ -393,7 +464,7 @@ const ResumePage = () => {
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
                     <div style={{ fontSize: 18, fontWeight: 600, color: '#262626' }}>
-                        Quản lý Hồ sơ ứng tuyển (Resumes)
+                        Quản lý Hồ sơ ứng tuyển (CV){isHR ? ` - ${currentUser?.company?.name || ''}` : ''}
                     </div>
                     <Segmented
                         value={viewMode}
@@ -408,14 +479,14 @@ const ResumePage = () => {
                 {viewMode === 'table' ? (
                     <DataTable<IResume>
                         actionRef={tableRef}
-                        headerTitle="Danh sách Resumes"
+                        headerTitle={isHR ? `Danh sách CV ứng tuyển - ${currentUser?.company?.name || ''}` : "Danh sách Resumes"}
                         rowKey="id"
                         loading={isFetching}
                         columns={columns}
                         dataSource={resumes}
                         request={async (params, sort, filter): Promise<any> => {
                             const query = buildQuery(params, sort, filter);
-                            dispatch(fetchResume({ query }))
+                            dispatch(fetchResume({ query }));
                         }}
                         scroll={{ x: true }}
                         pagination={
@@ -424,7 +495,7 @@ const ResumePage = () => {
                                 pageSize: meta.pageSize,
                                 showSizeChanger: true,
                                 total: meta.total,
-                                showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>) }
+                                showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>); }
                             }
                         }
                         rowSelection={false}
@@ -444,9 +515,23 @@ const ResumePage = () => {
                 dataInit={dataInit}
                 setDataInit={setDataInit}
                 reloadTable={reloadTable}
+                onScheduleInterview={(resume) => {
+                    setOpenViewDetail(false);
+                    handleOpenInterviewModal(resume);
+                }}
             />
-        </div >
-    )
-}
+            <ModalInterview
+                open={openModalInterview}
+                onClose={() => {
+                    setOpenModalInterview(false);
+                    setDataInitInterview(null);
+                }}
+                dataInit={dataInitInterview}
+                setDataInit={setDataInitInterview}
+                reloadTable={reloadTable}
+            />
+        </div>
+    );
+};
 
 export default ResumePage;

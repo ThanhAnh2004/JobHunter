@@ -40,7 +40,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
         if (httpMethod.equals("GET") && (
                 path.startsWith("/api/v1/companies") ||
                 path.startsWith("/api/v1/jobs") ||
-                path.startsWith("/api/v1/skills")
+                path.startsWith("/api/v1/skills") ||
+                path.startsWith("/api/v1/settings")
         )) {
             return true;
         }
@@ -77,6 +78,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
         // Any authenticated user can read or delete their own notifications
         if ((httpMethod.equals("GET") || httpMethod.equals("DELETE")) && path.startsWith("/api/v1/notifications")) {
+            return true;
+        }
+
+        // Cho phép chat endpoints cho người dùng đã đăng nhập (bảo mật và phân quyền theo công ty/ứng viên xử lý ở ChatService)
+        if (path.startsWith("/api/v1/chat")) {
             return true;
         }
 

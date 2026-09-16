@@ -1,4 +1,4 @@
-import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, IPermission, IRole, ISkill, IDashboardStats } from '@/types/backend';
+import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, IPermission, IRole, ISkill, IDashboardStats, IConversation, IChatMessage, IChatBadge } from '@/types/backend';
 import axios from 'config/axios-customize';
 
 /**
@@ -290,3 +290,54 @@ export const callFetchInterviewById = (id: string) => {
 export const callCandidateRespondInterview = (data: { id: number; status?: string; candidateNote?: string }) => {
     return axios.patch<IBackendRes<any>>('/api/v1/interviews/candidate-respond', data);
 }
+
+/**
+ * Module Chat
+ */
+export const callFetchConversations = () => {
+    return axios.get<IBackendRes<IConversation[]>>('/api/v1/chat/conversations');
+}
+
+export const callCreateOrGetConversation = (data: { companyId?: number; candidateId?: number; jobId?: number; initialMessage?: string }) => {
+    return axios.post<IBackendRes<IConversation>>('/api/v1/chat/conversations', data);
+}
+
+export const callFetchConversationById = (id: number) => {
+    return axios.get<IBackendRes<IConversation>>(`/api/v1/chat/conversations/${id}`);
+}
+
+export const callFetchMessages = (conversationId: number) => {
+    return axios.get<IBackendRes<IChatMessage[]>>(`/api/v1/chat/conversations/${conversationId}/messages`);
+}
+
+export const callSendMessage = (data: { conversationId: number; content: string; type?: string }) => {
+    return axios.post<IBackendRes<IChatMessage>>('/api/v1/chat/messages', data);
+}
+
+export const callMarkConversationAsRead = (conversationId: number) => {
+    return axios.patch<IBackendRes<void>>(`/api/v1/chat/conversations/${conversationId}/read`);
+}
+
+export const callFetchChatBadge = () => {
+    return axios.get<IBackendRes<IChatBadge>>('/api/v1/chat/badge');
+}
+
+/**
+ * Module Site Settings (Footer & Static Page Contents)
+ */
+export const callFetchAllSettings = () => {
+    return axios.get<IBackendRes<Record<string, string>>>('/api/v1/settings');
+}
+
+export const callFetchSettingByKey = (key: string) => {
+    return axios.get<IBackendRes<any>>(`/api/v1/settings/${key}`);
+}
+
+export const callUpdateSetting = (key: string, value: string, description?: string) => {
+    return axios.put<IBackendRes<any>>(`/api/v1/settings/${key}`, { value, description });
+}
+
+export const callBatchUpdateSettings = (settings: Record<string, string>) => {
+    return axios.post<IBackendRes<Record<string, string>>>('/api/v1/settings', settings);
+}
+

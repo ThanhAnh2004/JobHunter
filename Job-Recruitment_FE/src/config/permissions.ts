@@ -35,4 +35,21 @@ export const ALL_PERMISSIONS = {
         UPDATE: { method: "PUT", apiPath: '/api/v1/users', module: "USERS" },
         DELETE: { method: "DELETE", apiPath: '/api/v1/users/{id}', module: "USERS" },
     },
+    CHATS: {
+        GET_CONVERSATIONS: { method: "GET", apiPath: '/api/v1/chat/conversations', module: "CHATS" },
+        CREATE_CONVERSATION: { method: "POST", apiPath: '/api/v1/chat/conversations', module: "CHATS" },
+        GET_CONVERSATION_BY_ID: { method: "GET", apiPath: '/api/v1/chat/conversations/{id}', module: "CHATS" },
+        GET_MESSAGES: { method: "GET", apiPath: '/api/v1/chat/conversations/{id}/messages', module: "CHATS" },
+        SEND_MESSAGE: { method: "POST", apiPath: '/api/v1/chat/messages', module: "CHATS" },
+        MARK_READ: { method: "PATCH", apiPath: '/api/v1/chat/conversations/{id}/read', module: "CHATS" },
+        GET_BADGE: { method: "GET", apiPath: '/api/v1/chat/badge', module: "CHATS" },
+    },
+    INTERVIEWS: {
+        GET_PAGINATE: { method: "GET", apiPath: '/api/v1/interviews', module: "INTERVIEWS" },
+        CREATE: { method: "POST", apiPath: '/api/v1/interviews', module: "INTERVIEWS" },
+        UPDATE: { method: "PUT", apiPath: '/api/v1/interviews', module: "INTERVIEWS" },
+        DELETE: { method: "DELETE", apiPath: '/api/v1/interviews/{id}', module: "INTERVIEWS" },
+        GET_BY_ID: { method: "GET", apiPath: '/api/v1/interviews/{id}', module: "INTERVIEWS" },
+        CANDIDATE_RESPOND: { method: "PATCH", apiPath: '/api/v1/interviews/candidate-respond', module: "INTERVIEWS" },
+    },
 }

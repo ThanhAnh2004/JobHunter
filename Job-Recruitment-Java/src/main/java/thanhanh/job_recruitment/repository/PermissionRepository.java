@@ -16,5 +16,5 @@ public interface PermissionRepository extends JpaRepository<Permission, Long>, J
             String apiPart,
             String method
     );
-
+    boolean existsByApiPathAndMethod(String apiPath, String method);
 }

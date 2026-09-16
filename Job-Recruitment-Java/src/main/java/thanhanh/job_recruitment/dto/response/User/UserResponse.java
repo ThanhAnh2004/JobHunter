@@ -22,6 +22,7 @@ public class UserResponse {
     int age;
     GenderEnum gender;
     String address;
+    String avatar;
     @JsonIgnoreProperties(value = "users")
     RoleUser role;
     CompanyUser company;

@@ -37,8 +37,28 @@ public class FileService {
     }
 
     public String storeFile(MultipartFile file, String folder) throws URISyntaxException, IOException {
-        // create unique filename
-        String finalName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            originalFilename = "file.png";
+        }
+
+        String baseName = originalFilename;
+        String extension = "";
+        int lastDotIndex = originalFilename.lastIndexOf('.');
+        if (lastDotIndex >= 0) {
+            baseName = originalFilename.substring(0, lastDotIndex);
+            extension = originalFilename.substring(lastDotIndex);
+        }
+
+        // Clean base name to alphanumeric, dash, underscore
+        baseName = baseName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        if (baseName.isEmpty()) {
+            baseName = "image";
+        }
+
+        // Generate unique suffix with timestamp and random number to avoid collision
+        long randomSuffix = System.currentTimeMillis() + (long)(Math.random() * 90000 + 10000);
+        String finalName = baseName + "_" + randomSuffix + extension;
 
         URI uri = new URI(baseURI + folder + "/" + finalName);
         Path path = Paths.get(uri);

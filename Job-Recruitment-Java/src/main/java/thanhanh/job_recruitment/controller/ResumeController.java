@@ -203,30 +203,38 @@ public class ResumeController {
             Pageable pageable
     ) {
 
-        String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtil.getCurrentUserLogin().get() : null;
-
+        String email = SecurityUtil.getCurrentUserLogin().orElse(null);
         Specification<Resume> finalSpec = spec;
 
-        if (email != null && !email.equals("admin@gmail.com")) {
-            List<Long> listJobId = new ArrayList<>();
-            User currentUer = this.userService.fetchUserByEmail(email);
+        if (email != null) {
+            User currentUser = this.userService.fetchUserByEmail(email);
+            boolean isSuperAdmin = email.equals("admin@gmail.com") || 
+                (currentUser != null && currentUser.getRole() != null && "SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole().getName()));
+            boolean isHR = currentUser != null && currentUser.getRole() != null && "HR".equalsIgnoreCase(currentUser.getRole().getName());
 
-            if(currentUer != null) {
-                Company userCompany = currentUer.getCompany();
-                if (userCompany != null) {
+            if (!isSuperAdmin) {
+                if (isHR && currentUser.getCompany() != null) {
+                    Company userCompany = currentUser.getCompany();
                     List<Job> companyJob = userCompany.getJobs();
                     if (companyJob != null && !companyJob.isEmpty()) {
-                        listJobId = companyJob.stream().map(x -> x.getId()).toList();
+                        List<Long> listJobId = companyJob.stream().map(Job::getId).toList();
+                        Specification<Resume> jobInSpec = (root, query, cb) -> root.get("job").get("id").in(listJobId);
+                        finalSpec = jobInSpec.and(spec);
+                    } else {
+                        Specification<Resume> emptySpec = (root, query, cb) -> cb.disjunction();
+                        finalSpec = emptySpec.and(spec);
                     }
+                } else if (currentUser != null) {
+                    long userId = currentUser.getId();
+                    String userEmail = currentUser.getEmail();
+                    Specification<Resume> userSpec = (root, query, cb) -> 
+                        cb.or(
+                            cb.equal(root.get("user").get("id"), userId),
+                            cb.equal(root.get("email"), userEmail)
+                        );
+                    finalSpec = userSpec.and(spec);
                 }
             }
-
-            Specification<Resume> jobInSpec = filterSpecificationConverter.convert(
-                    filterBuilder.field("job").in(filterBuilder.input(listJobId)).get()
-            );
-
-            finalSpec = jobInSpec.and(spec);
         }
 
         return ResponseEntity.ok().body(this.resumeService.fetchAllResume(finalSpec, pageable));

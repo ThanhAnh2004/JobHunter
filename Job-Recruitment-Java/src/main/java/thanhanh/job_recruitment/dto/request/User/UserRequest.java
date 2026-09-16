@@ -16,6 +16,7 @@ public class UserRequest {
     int age;
     GenderEnum gender;
     String address;
+    String avatar;
     RoleUser role;
     CompanyUser company;
 

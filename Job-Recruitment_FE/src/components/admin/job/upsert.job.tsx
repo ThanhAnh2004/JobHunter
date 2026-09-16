@@ -1,4 +1,4 @@
-import { Breadcrumb, Col, ConfigProvider, Divider, Form, Row, message, notification } from "antd";
+import { Breadcrumb, Col, ConfigProvider, Divider, Form, Row, Input, message, notification } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { DebounceSelect } from "../user/debouce.select";
 import { FooterToolbar, ProForm, ProFormDatePicker, ProFormDigit, ProFormSelect, ProFormSwitch, ProFormText } from "@ant-design/pro-components";
@@ -9,10 +9,11 @@ import { useState, useEffect } from 'react';
 import { callCreateJob, callFetchAllSkill, callFetchCompany, callFetchJobById, callUpdateJob } from "@/config/api";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { CheckSquareOutlined } from "@ant-design/icons";
+import { CheckSquareOutlined, BankOutlined } from "@ant-design/icons";
 import enUS from 'antd/lib/locale/en_US';
 import dayjs from 'dayjs';
 import { IJob, ISkill } from "@/types/backend";
+import { useAppSelector } from "@/redux/hooks";
 
 interface ISkillSelect {
     label: string;
@@ -24,10 +25,15 @@ const ViewUpsertJob = (props: any) => {
     const [companies, setCompanies] = useState<ICompanySelect[]>([]);
     const [skills, setSkills] = useState<ISkillSelect[]>([]);
 
+    const location = useLocation();
+    const currentUser = useAppSelector(state => state.account.user);
+    const roleName = (currentUser?.role?.name ?? "").toUpperCase();
+    const isSuperAdmin = currentUser?.email === 'admin@gmail.com' || roleName === 'SUPER_ADMIN' || roleName.includes('ADMIN');
+    const isHR = location.pathname.startsWith('/hr') || (!isSuperAdmin && (Boolean(currentUser?.company?.id) || roleName === 'HR'));
+
     const navigate = useNavigate();
     const [value, setValue] = useState<string>("");
 
-    let location = useLocation();
     let params = new URLSearchParams(location.search);
     const id = params?.get("id"); // job id
     const [dataUpdate, setDataUpdate] = useState<IJob | null>(null);
@@ -43,16 +49,17 @@ const ViewUpsertJob = (props: any) => {
                 if (res && res.data) {
                     setDataUpdate(res.data);
                     setValue(res.data.description);
-                    setCompanies([
-                        {
-                            label: res.data.company?.name as string,
-                            value: `${res.data.company?.id}@#$${res.data.company?.logo}` as string,
-                            key: res.data.company?.id
-                        }
-                    ])
+                    const companyOption = {
+                        label: (isHR && currentUser?.company?.name) ? currentUser.company.name : (res.data.company?.name as string),
+                        value: (isHR && currentUser?.company?.id) 
+                            ? `${currentUser.company.id}@#$${currentUser.company.logo || ''}`
+                            : `${res.data.company?.id}@#$${res.data.company?.logo}`,
+                        key: (isHR && currentUser?.company?.id) ? String(currentUser.company.id) : String(res.data.company?.id)
+                    };
+                    setCompanies([companyOption]);
 
                     //skills
-                    const temp: any = res.data?.skills?.map((item: ISkill) => {
+                    const tempSkills: any = res.data?.skills?.map((item: ISkill) => {
                         return {
                             label: item.name,
                             value: item.id,
@@ -61,19 +68,25 @@ const ViewUpsertJob = (props: any) => {
                     })
                     form.setFieldsValue({
                         ...res.data,
-                        company: {
-                            label: res.data.company?.name as string,
-                            value: `${res.data.company?.id}@#$${res.data.company?.logo}` as string,
-                            key: res.data.company?.id
-                        },
-                        skills: temp
+                        company: companyOption,
+                        skills: tempSkills
                     })
                 }
+            } else if (isHR && currentUser?.company?.id) {
+                const hrCompanyOption = {
+                    label: currentUser.company.name as string,
+                    value: `${currentUser.company.id}@#$${currentUser.company.logo || ''}` as string,
+                    key: String(currentUser.company.id)
+                };
+                setCompanies([hrCompanyOption]);
+                form.setFieldsValue({
+                    company: hrCompanyOption
+                });
             }
         }
         init();
         return () => form.resetFields()
-    }, [id])
+    }, [id, isHR, currentUser?.company?.id, currentUser?.company?.name])
 
     // Usage of DebounceSelect
     async function fetchCompanyList(name: string): Promise<ICompanySelect[]> {
@@ -105,10 +118,24 @@ const ViewUpsertJob = (props: any) => {
     }
 
     const onFinish = async (values: any) => {
+        let companyId = "";
+        let companyName = "";
+        let companyLogo = "";
+
+        if (isHR && currentUser?.company?.id) {
+            companyId = String(currentUser.company.id);
+            companyName = currentUser.company.name || "";
+            companyLogo = currentUser.company.logo || "";
+        } else {
+            const companyObj = values.company;
+            const cp = companyObj?.value?.split('@#$');
+            companyId = cp && cp.length > 0 ? cp[0] : "";
+            companyName = companyObj?.label || "";
+            companyLogo = cp && cp.length > 1 ? cp[1] : "";
+        }
+
         if (dataUpdate?.id) {
             //update
-            const cp = values?.company?.value?.split('@#$');
-
             let arrSkills = [];
             if (typeof values?.skills?.[0] === 'object') {
                 arrSkills = values?.skills?.map((item: any) => { return { id: item.value } });
@@ -120,9 +147,9 @@ const ViewUpsertJob = (props: any) => {
                 name: values.name,
                 skills: arrSkills,
                 company: {
-                    id: cp && cp.length > 0 ? cp[0] : "",
-                    name: values.company.label,
-                    logo: cp && cp.length > 1 ? cp[1] : ""
+                    id: companyId,
+                    name: companyName,
+                    logo: companyLogo
                 },
                 location: values.location,
                 salary: values.salary,
@@ -135,10 +162,11 @@ const ViewUpsertJob = (props: any) => {
 
             }
 
+            const basePath = location.pathname.startsWith('/hr') ? '/hr/job' : '/admin/job';
             const res = await callUpdateJob(job, dataUpdate.id);
             if (res.data) {
                 message.success("Cập nhật job thành công");
-                navigate('/admin/job')
+                navigate(basePath)
             } else {
                 notification.error({
                     message: 'Có lỗi xảy ra',
@@ -147,15 +175,14 @@ const ViewUpsertJob = (props: any) => {
             }
         } else {
             //create
-            const cp = values?.company?.value?.split('@#$');
             const arrSkills = values?.skills?.map((item: string) => { return { id: +item } });
             const job = {
                 name: values.name,
                 skills: arrSkills,
                 company: {
-                    id: cp && cp.length > 0 ? cp[0] : "",
-                    name: values.company.label,
-                    logo: cp && cp.length > 1 ? cp[1] : ""
+                    id: companyId,
+                    name: companyName,
+                    logo: companyLogo
                 },
                 location: values.location,
                 salary: values.salary,
@@ -167,10 +194,11 @@ const ViewUpsertJob = (props: any) => {
                 active: values.active
             }
 
+            const basePath = location.pathname.startsWith('/hr') ? '/hr/job' : '/admin/job';
             const res = await callCreateJob(job);
             if (res.data) {
                 message.success("Tạo mới job thành công");
-                navigate('/admin/job')
+                navigate(basePath)
             } else {
                 notification.error({
                     message: 'Có lỗi xảy ra',
@@ -180,7 +208,7 @@ const ViewUpsertJob = (props: any) => {
         }
     }
 
-
+    const jobBasePath = location.pathname.startsWith('/hr') ? '/hr/job' : '/admin/job';
 
     return (
         <div className={styles["upsert-job-container"]}>
@@ -189,10 +217,10 @@ const ViewUpsertJob = (props: any) => {
                     separator=">"
                     items={[
                         {
-                            title: <Link to="/admin/job">Manage Job</Link>,
+                            title: <Link to={jobBasePath}>{isHR ? "Danh sách việc làm" : "Manage Job"}</Link>,
                         },
                         {
-                            title: 'Upsert Job',
+                            title: dataUpdate?.id ? (isHR ? "Cập nhật việc làm" : "Cập nhật Job") : (isHR ? "Tạo mới việc làm" : "Tạo mới Job"),
                         },
                     ]}
                 />
@@ -209,7 +237,7 @@ const ViewUpsertJob = (props: any) => {
                                     resetText: "Hủy",
                                     submitText: <>{dataUpdate?.id ? "Cập nhật Job" : "Tạo mới Job"}</>
                                 },
-                                onReset: () => navigate('/admin/job'),
+                                onReset: () => navigate(jobBasePath),
                                 render: (_: any, dom: any) => <FooterToolbar>{dom}</FooterToolbar>,
                                 submitButtonProps: {
                                     icon: <CheckSquareOutlined />
@@ -294,22 +322,37 @@ const ViewUpsertJob = (props: any) => {
                                     <ProForm.Item
                                         name="company"
                                         label="Thuộc Công Ty"
-                                        rules={[{ required: true, message: 'Vui lòng chọn company!' }]}
+                                        rules={[{ required: !isHR, message: 'Vui lòng chọn company!' }]}
+                                        tooltip={isHR ? "Cố định theo doanh nghiệp của bạn" : undefined}
                                     >
-                                        <DebounceSelect
-                                            allowClear
-                                            showSearch
-                                            defaultValue={companies}
-                                            value={companies}
-                                            placeholder="Chọn công ty"
-                                            fetchOptions={fetchCompanyList}
-                                            onChange={(newValue: any) => {
-                                                if (newValue?.length === 0 || newValue?.length === 1) {
-                                                    setCompanies(newValue as ICompanySelect[]);
-                                                }
-                                            }}
-                                            style={{ width: '100%' }}
-                                        />
+                                        {isHR ? (
+                                            <Input
+                                                disabled
+                                                value={currentUser?.company?.name || 'Doanh Nghiệp'}
+                                                style={{
+                                                    color: '#0f172a',
+                                                    fontWeight: 600,
+                                                    background: '#f1f5f9',
+                                                    cursor: 'not-allowed'
+                                                }}
+                                                prefix={<BankOutlined style={{ color: '#2563eb', marginRight: 6 }} />}
+                                            />
+                                        ) : (
+                                            <DebounceSelect
+                                                allowClear
+                                                showSearch
+                                                defaultValue={companies}
+                                                value={companies}
+                                                placeholder="Chọn công ty"
+                                                fetchOptions={fetchCompanyList}
+                                                onChange={(newValue: any) => {
+                                                    if (newValue?.length === 0 || newValue?.length === 1) {
+                                                        setCompanies(newValue as ICompanySelect[]);
+                                                    }
+                                                }}
+                                                style={{ width: '100%' }}
+                                            />
+                                        )}
                                     </ProForm.Item>
 
                                 </Col>

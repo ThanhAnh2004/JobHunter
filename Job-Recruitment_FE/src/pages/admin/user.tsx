@@ -25,6 +25,10 @@ const UserPage = () => {
     const isFetching = useAppSelector(state => state.user.isFetching);
     const meta = useAppSelector(state => state.user.meta);
     const users = useAppSelector(state => state.user.result);
+    const currentUser = useAppSelector(state => state.account.user);
+    const isSuperAdmin = currentUser.email === 'admin@gmail.com' || currentUser.role?.name === 'SUPER_ADMIN';
+    const isHR = !isSuperAdmin && Boolean(currentUser?.company?.id);
+
     const dispatch = useAppDispatch();
 
     const handleDeleteUser = async (id: string | undefined) => {
@@ -82,7 +86,8 @@ const UserPage = () => {
             title: 'Company',
             dataIndex: ["company", "name"],
             sorter: true,
-            hideInSearch: true
+            hideInSearch: true,
+            hideInTable: isHR,
         },
 
         {
@@ -210,7 +215,7 @@ const UserPage = () => {
             >
                 <DataTable<IUser>
                     actionRef={tableRef}
-                    headerTitle="Danh sách Users"
+                    headerTitle={isHR ? `Danh sách nhân sự - ${currentUser?.company?.name || ''}` : "Danh sách Users"}
                     rowKey="id"
                     loading={isFetching}
                     columns={columns}

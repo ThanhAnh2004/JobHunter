@@ -6,12 +6,17 @@ import { callDeleteInterview, callFetchInterview } from "@/config/api";
 import DataTable from "@/components/client/data-table";
 import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import ModalInterview from '@/components/admin/interview/modal.interview';
+import { useAppSelector } from '@/redux/hooks';
 
 const InterviewPage = () => {
     const tableRef = useRef<ActionType>();
     const [isFetching, setIsFetching] = useState(false);
     const [openModal, setOpenModal] = useState(false);
     const [dataInit, setDataInit] = useState<any>(null);
+
+    const currentUser = useAppSelector(state => state.account.user);
+    const isSuperAdmin = currentUser.email === 'admin@gmail.com' || currentUser.role?.name === 'SUPER_ADMIN';
+    const isHR = !isSuperAdmin && Boolean(currentUser?.company?.id);
 
     const [interviews, setInterviews] = useState<any[]>([]);
     const [meta, setMeta] = useState({ page: 1, pageSize: 10, total: 0 });
@@ -137,13 +142,13 @@ const InterviewPage = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
                 <div style={{ fontSize: 18, fontWeight: 600, color: '#262626' }}>
-                    Quản lý Lịch Phỏng Vấn (Interviews)
+                    Quản lý Lịch Phỏng Vấn{isHR ? ` - ${currentUser?.company?.name || ''}` : ''}
                 </div>
             </div>
 
             <DataTable<any>
                 actionRef={tableRef}
-                headerTitle="Danh sách Lịch phỏng vấn"
+                headerTitle={isHR ? `Danh sách Lịch phỏng vấn - ${currentUser?.company?.name || ''}` : "Danh sách Lịch phỏng vấn"}
                 rowKey="id"
                 loading={isFetching}
                 columns={columns}

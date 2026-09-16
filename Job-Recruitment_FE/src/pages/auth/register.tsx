@@ -1,15 +1,27 @@
-import { Button, Divider, Form, Input, Row, Select, message, notification } from 'antd';
+import { Button, Form, Input, Select, message, notification } from 'antd';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { callRegister } from 'config/api';
+import { callRegister } from '@/config/api';
 import styles from 'styles/auth.module.scss';
 import { IUser } from '@/types/backend';
-const { Option } = Select;
+import { 
+    ArrowLeftOutlined, 
+    LockOutlined, 
+    MailOutlined, 
+    UserOutlined, 
+    HomeOutlined, 
+    RocketOutlined, 
+    ThunderboltOutlined,
+    SafetyCertificateOutlined 
+} from '@ant-design/icons';
+import { FaReact } from 'react-icons/fa';
 
+const { Option } = Select;
 
 const RegisterPage = () => {
     const navigate = useNavigate();
     const [isSubmit, setIsSubmit] = useState(false);
+    const [form] = Form.useForm();
 
     const onFinish = async (values: IUser) => {
         const { name, email, password, age, gender, address } = values;
@@ -17,119 +29,196 @@ const RegisterPage = () => {
         const res = await callRegister(name, email, password as string, +age, gender, address);
         setIsSubmit(false);
         if (res?.data?.id) {
-            message.success('Đăng ký tài khoản thành công!');
-            navigate('/login')
+            message.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
+            navigate('/login');
         } else {
             notification.error({
-                message: "Có lỗi xảy ra",
+                message: "Đăng ký không thành công",
                 description:
                     res.message && Array.isArray(res.message) ? res.message[0] : res.message,
                 duration: 5
-            })
+            });
         }
     };
 
-
     return (
-        <div className={styles["register-page"]} >
+        <div className={styles["auth-container"]}>
+            {/* Nút quay về trang chủ */}
+            <Link to="/" className={styles["back-home-button"]}>
+                <ArrowLeftOutlined />
+                <span>Về trang chủ</span>
+            </Link>
 
-            <main className={styles.main} >
-                <div className={styles.container} >
-                    <section className={styles.wrapper} >
-                        <div className={styles.heading} >
-                            <h2 className={`${styles.text} ${styles["text-large"]}`}> Đăng Ký Tài Khoản </h2>
-                            < Divider />
+            <div className={styles["auth-card"]} style={{ maxWidth: 1000 }}>
+                {/* Cột trái: Giới thiệu */}
+                <div className={styles["banner-side"]}>
+                    <div className={styles["brand-header"]}>
+                        <FaReact className={styles["brand-icon"]} />
+                        <span className={styles["brand-name"]}>JobHunter</span>
+                    </div>
+
+                    <div className={styles["banner-content"]}>
+                        <h1 className={styles["hero-title"]}>
+                            Bắt đầu hành trình sự nghiệp IT của bạn
+                        </h1>
+                        <p className={styles["hero-desc"]}>
+                            Tạo tài khoản để ứng tuyển công việc mơ ước, theo dõi tiến độ phỏng vấn và nhận gợi ý việc làm phù hợp nhất.
+                        </p>
+
+                        <div className={styles["features-list"]}>
+                            <div className={styles["feature-item"]}>
+                                <div className={styles["feature-icon"]}>
+                                    <RocketOutlined />
+                                </div>
+                                <span className={styles["feature-text"]}>Hồ sơ trực tuyến chuyên nghiệp</span>
+                            </div>
+                            <div className={styles["feature-item"]}>
+                                <div className={styles["feature-icon"]}>
+                                    <ThunderboltOutlined />
+                                </div>
+                                <span className={styles["feature-text"]}>Nhận thông báo việc làm mới qua Email & Web</span>
+                            </div>
+                            <div className={styles["feature-item"]}>
+                                <div className={styles["feature-icon"]}>
+                                    <SafetyCertificateOutlined />
+                                </div>
+                                <span className={styles["feature-text"]}>Bảo mật thông tin & quản trị dữ liệu an toàn</span>
+                            </div>
                         </div>
-                        < Form<IUser>
-                            name="basic"
-                            // style={{ maxWidth: 600, margin: '0 auto' }}
-                            onFinish={onFinish}
-                            autoComplete="off"
-                        >
+                    </div>
+
+                    <div className={styles["banner-footer"]}>
+                        © 2026 JobHunter. All rights reserved.
+                    </div>
+                </div>
+
+                {/* Cột phải: Form Đăng ký */}
+                <div className={styles["form-side"]} style={{ padding: '36px 40px' }}>
+                    <div className={styles["mobile-brand"]}>
+                        <FaReact className={styles["brand-icon"]} />
+                        <span className={styles["brand-name"]}>JobHunter</span>
+                    </div>
+
+                    <div className={styles["form-header"]} style={{ marginBottom: 20 }}>
+                        <h2 className={styles["form-title"]}>Tạo tài khoản mới 🚀</h2>
+                        <p className={styles["form-subtitle"]}>
+                            Điền đầy đủ thông tin bên dưới để đăng ký tài khoản
+                        </p>
+                    </div>
+
+                    <Form<IUser>
+                        form={form}
+                        name="registerForm"
+                        layout="vertical"
+                        onFinish={onFinish}
+                        autoComplete="off"
+                        size="middle"
+                    >
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0 16px' }}>
                             <Form.Item
-                                labelCol={{ span: 24 }} //whole column
                                 label="Họ tên"
                                 name="name"
                                 rules={[{ required: true, message: 'Họ tên không được để trống!' }]}
                             >
-                                <Input />
+                                <Input 
+                                    prefix={<UserOutlined style={{ color: '#94a3b8' }} />} 
+                                    placeholder="Nguyễn Văn A" 
+                                    className={styles["input-field"]} 
+                                />
                             </Form.Item>
 
-
                             <Form.Item
-                                labelCol={{ span: 24 }
-                                } //whole column
                                 label="Email"
                                 name="email"
-                                rules={[{ required: true, message: 'Email không được để trống!' }]}
+                                rules={[
+                                    { required: true, message: 'Email không được để trống!' },
+                                    { type: 'email', message: 'Email không đúng định dạng!' }
+                                ]}
                             >
-                                <Input type='email' />
+                                <Input 
+                                    prefix={<MailOutlined style={{ color: '#94a3b8' }} />} 
+                                    placeholder="example@gmail.com" 
+                                    className={styles["input-field"]} 
+                                />
                             </Form.Item>
+                        </div>
 
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0 16px' }}>
                             <Form.Item
-                                labelCol={{ span: 24 }} //whole column
                                 label="Mật khẩu"
                                 name="password"
                                 rules={[{ required: true, message: 'Mật khẩu không được để trống!' }]}
                             >
-                                <Input.Password />
+                                <Input.Password 
+                                    prefix={<LockOutlined style={{ color: '#94a3b8' }} />} 
+                                    placeholder="••••••••" 
+                                    className={styles["input-field"]} 
+                                />
                             </Form.Item>
+
                             <Form.Item
-                                labelCol={{ span: 24 }} //whole column
                                 label="Tuổi"
                                 name="age"
                                 rules={[{ required: true, message: 'Tuổi không được để trống!' }]}
                             >
-                                <Input type='number' />
+                                <Input 
+                                    type="number" 
+                                    min={16} 
+                                    max={100} 
+                                    placeholder="22" 
+                                    className={styles["input-field"]} 
+                                />
                             </Form.Item>
+                        </div>
 
-
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0 16px' }}>
                             <Form.Item
-                                labelCol={{ span: 24 }} //whole column
                                 name="gender"
                                 label="Giới tính"
-                                rules={[{ required: true, message: 'Giới tính không được để trống!' }]}
+                                rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
                             >
-                                <Select
-                                    // placeholder="Select a option and change input text above"
-                                    // onChange={onGenderChange}
-                                    allowClear
-                                >
+                                <Select placeholder="Chọn giới tính" allowClear className={styles["input-field"]}>
                                     <Option value="MALE">Nam</Option>
                                     <Option value="FEMALE">Nữ</Option>
                                     <Option value="OTHER">Khác</Option>
                                 </Select>
                             </Form.Item>
 
-
                             <Form.Item
-                                labelCol={{ span: 24 }} //whole column
                                 label="Địa chỉ"
                                 name="address"
                                 rules={[{ required: true, message: 'Địa chỉ không được để trống!' }]}
                             >
-                                <Input />
+                                <Input 
+                                    placeholder="Hà Nội, Việt Nam" 
+                                    className={styles["input-field"]} 
+                                />
                             </Form.Item>
+                        </div>
 
-                            < Form.Item
-                            // wrapperCol={{ offset: 6, span: 16 }}
+                        <Form.Item style={{ marginTop: 8, marginBottom: 12 }}>
+                            <Button 
+                                type="primary" 
+                                htmlType="submit" 
+                                loading={isSubmit}
+                                block
+                                className={styles["submit-btn"]}
                             >
-                                <Button type="primary" htmlType="submit" loading={isSubmit} >
-                                    Đăng ký
-                                </Button>
-                            </Form.Item>
-                            <Divider> Or </Divider>
-                            <p className="text text-normal" > Đã có tài khoản ?
-                                <span>
-                                    <Link to='/login' > Đăng Nhập </Link>
-                                </span>
-                            </p>
-                        </Form>
-                    </section>
+                                Đăng Ký Tài Khoản
+                            </Button>
+                        </Form.Item>
+
+                        <div className={styles["auth-footer"]}>
+                            <span>Đã có tài khoản?</span>
+                            <Link to="/login" className={styles["auth-link"]}>
+                                Đăng nhập ngay
+                            </Link>
+                        </div>
+                    </Form>
                 </div>
-            </main>
+            </div>
         </div>
-    )
-}
+    );
+};
 
 export default RegisterPage;

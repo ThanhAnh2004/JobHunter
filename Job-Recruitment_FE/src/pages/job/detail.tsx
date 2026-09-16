@@ -1,16 +1,17 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import { IJob } from "@/types/backend";
 import { callFetchJobById } from "@/config/api";
 import { withBackendUrl } from "@/config/runtime";
 import styles from 'styles/client.module.scss';
 import parse from 'html-react-parser';
-import { Col, Divider, Row, Skeleton, Tag } from "antd";
-import { DollarOutlined, EnvironmentOutlined, HistoryOutlined } from "@ant-design/icons";
-import { getLocationName } from "@/config/utils";
+import { Col, Divider, Row, Skeleton, Tag, Button } from "antd";
+import { DollarOutlined, EnvironmentOutlined, HistoryOutlined, MessageOutlined } from "@ant-design/icons";
+import { getLocationName, cleanHtmlDescription, formatRelativeTime } from "@/config/utils";
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import ApplyModal from "@/components/client/modal/apply.modal";
+import { useAppSelector } from "@/redux/hooks";
 dayjs.extend(relativeTime)
 
 
@@ -19,16 +20,29 @@ const ClientJobDetailPage = (props: any) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const navigate = useNavigate();
+    const routeParams = useParams<{ id: string }>();
+    const [searchParams] = useSearchParams();
+    const isAuthenticated = useAppSelector(state => state.account.isAuthenticated);
 
-    let location = useLocation();
-    let params = new URLSearchParams(location.search);
-    const id = params?.get("id"); // job id
+    let targetId = searchParams.get("id");
+    if (!targetId && routeParams.id) {
+        if (/^\d+$/.test(routeParams.id)) {
+            targetId = routeParams.id;
+        } else {
+            const parts = routeParams.id.split("-");
+            const lastPart = parts[parts.length - 1];
+            if (/^\d+$/.test(lastPart)) {
+                targetId = lastPart;
+            }
+        }
+    }
 
     useEffect(() => {
         const init = async () => {
-            if (id) {
+            if (targetId) {
                 setIsLoading(true)
-                const res = await callFetchJobById(id);
+                const res = await callFetchJobById(targetId);
                 if (res?.data) {
                     setJobDetail(res.data)
                 }
@@ -36,7 +50,7 @@ const ClientJobDetailPage = (props: any) => {
             }
         }
         init();
-    }, [id]);
+    }, [targetId]);
 
     return (
         <div className={`${styles["container"]} ${styles["detail-job-section"]}`}>
@@ -50,11 +64,34 @@ const ClientJobDetailPage = (props: any) => {
                                 <div className={styles["header"]}>
                                     {jobDetail.name}
                                 </div>
-                                <div>
+                                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                                     <button
                                         onClick={() => setIsModalOpen(true)}
                                         className={styles["btn-apply"]}
                                     >Apply Now</button>
+                                    <Button
+                                        size="large"
+                                        icon={<MessageOutlined style={{ color: '#2563eb' }} />}
+                                        onClick={() => {
+                                            if (!isAuthenticated) {
+                                                navigate('/login');
+                                                return;
+                                            }
+                                            navigate(`/chat?companyId=${jobDetail.company?.id}&jobId=${jobDetail.id}`);
+                                        }}
+                                        style={{
+                                            borderRadius: 8,
+                                            height: 40,
+                                            borderColor: '#2563eb',
+                                            color: '#2563eb',
+                                            fontWeight: 600,
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 6
+                                        }}
+                                    >
+                                        Nhắn tin với NTD
+                                    </Button>
                                 </div>
                                 <Divider />
                                 <div className={styles["skills"]}>
@@ -74,10 +111,10 @@ const ClientJobDetailPage = (props: any) => {
                                     <EnvironmentOutlined style={{ color: '#58aaab' }} />&nbsp;{getLocationName(jobDetail.location)}
                                 </div>
                                 <div>
-                                    <HistoryOutlined /> {jobDetail.updatedAt ? dayjs(jobDetail.updatedAt).locale("en").fromNow() : dayjs(jobDetail.createdAt).locale("en").fromNow()}
+                                    <HistoryOutlined /> {formatRelativeTime(jobDetail.updatedAt || jobDetail.createdAt)}
                                 </div>
                                 <Divider />
-                                {parse(jobDetail.description)}
+                                {parse(cleanHtmlDescription(jobDetail.description))}
                             </Col>
 
                             <Col span={24} md={8}>

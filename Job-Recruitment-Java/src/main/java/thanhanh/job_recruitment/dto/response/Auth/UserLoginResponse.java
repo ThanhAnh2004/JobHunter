@@ -16,5 +16,18 @@ public class UserLoginResponse {
     long id;
     String name;
     String email;
+    String avatar;
     Role role;
+    CompanyUser company;
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class CompanyUser {
+        private long id;
+        private String name;
+        private String logo;
+    }
 }

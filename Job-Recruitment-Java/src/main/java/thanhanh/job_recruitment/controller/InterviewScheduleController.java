@@ -85,26 +85,31 @@ public class InterviewScheduleController {
         if (email != null && !email.equals("admin@gmail.com")) {
             User currentUser = this.userService.fetchUserByEmail(email);
             if (currentUser != null) {
-                if (currentUser.getRole() != null && currentUser.getRole().getName().equals("SUPER_ADMIN")) {
+                boolean isSuperAdmin = currentUser.getRole() != null && "SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole().getName());
+                boolean isHR = currentUser.getRole() != null && "HR".equalsIgnoreCase(currentUser.getRole().getName());
+
+                if (isSuperAdmin) {
                     // super admin sees all
-                } else if (currentUser.getCompany() != null) {
+                } else if (isHR && currentUser.getCompany() != null) {
                     // HR sees interviews for their company
-                    List<Long> listJobId = new ArrayList<>();
-                    List<Job> companyJobs = currentUser.getCompany().getJobs();
-                    if (companyJobs != null && !companyJobs.isEmpty()) {
-                        listJobId = companyJobs.stream().map(Job::getId).toList();
-                        final List<Long> finalJobIds = listJobId;
-                        Specification<InterviewSchedule> jobInSpec = (root, query, cb) -> root.get("job").get("id").in(finalJobIds);
-                        finalSpec = jobInSpec.and(spec);
-                    } else {
-                        Specification<InterviewSchedule> emptySpec = (root, query, cb) -> cb.disjunction();
-                        finalSpec = emptySpec.and(spec);
-                    }
+                    long companyId = currentUser.getCompany().getId();
+                    Specification<InterviewSchedule> companySpec = (root, query, cb) -> 
+                        cb.equal(root.get("job").get("company").get("id"), companyId);
+                    finalSpec = finalSpec == null ? companySpec : finalSpec.and(companySpec);
                 } else {
-                    // Candidate sees only their own interviews
-                    Specification<InterviewSchedule> candidateSpec = (root, query, cb) -> cb.equal(root.get("candidate").get("id"), currentUser.getId());
-                    finalSpec = candidateSpec.and(spec);
+                    // Candidate sees only their own interviews (by candidate ID or candidate Email)
+                    long currentUserId = currentUser.getId();
+                    String currentUserEmail = currentUser.getEmail();
+                    Specification<InterviewSchedule> candidateSpec = (root, query, cb) -> 
+                        cb.or(
+                            cb.equal(root.get("candidate").get("id"), currentUserId),
+                            cb.equal(root.get("candidate").get("email"), currentUserEmail)
+                        );
+                    finalSpec = finalSpec == null ? candidateSpec : finalSpec.and(candidateSpec);
                 }
+            } else {
+                Specification<InterviewSchedule> emptySpec = (root, query, cb) -> cb.disjunction();
+                finalSpec = finalSpec == null ? emptySpec : finalSpec.and(emptySpec);
             }
         }
 

@@ -29,7 +29,14 @@ export default defineConfig(({ command, mode }) => {
         styles: `${path.resolve(__dirname, "./src/styles/")}`,
         config: `${path.resolve(__dirname, "./src/config/")}`,
         pages: `${path.resolve(__dirname, "./src/pages/")}`,
+        "@stomp/stompjs": path.resolve(__dirname, "node_modules/@stomp/stompjs/esm6/index.js"),
       },
+    },
+    define: {
+      global: 'window',
+    },
+    optimizeDeps: {
+      include: ['@stomp/stompjs', 'sockjs-client'],
     },
   }
 })

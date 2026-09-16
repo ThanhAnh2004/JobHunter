@@ -8,7 +8,7 @@ import { useRef } from 'react';
 import dayjs from 'dayjs';
 import { callDeleteJob } from "@/config/api";
 import queryString from 'query-string';
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { fetchJob } from "@/redux/slice/jobSlide";
 import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
@@ -16,10 +16,16 @@ import { sfIn } from "spring-filter-query-builder";
 
 const JobPage = () => {
     const tableRef = useRef<ActionType>();
+    const location = useLocation();
 
     const isFetching = useAppSelector(state => state.job.isFetching);
     const meta = useAppSelector(state => state.job.meta);
     const jobs = useAppSelector(state => state.job.result);
+    const currentUser = useAppSelector(state => state.account.user);
+    const roleName = (currentUser?.role?.name ?? "").toUpperCase();
+    const isSuperAdmin = currentUser?.email === 'admin@gmail.com' || roleName === 'SUPER_ADMIN' || roleName.includes('ADMIN');
+    const isHR = location.pathname.startsWith('/hr') || (!isSuperAdmin && (Boolean(currentUser?.company?.id) || roleName === 'HR'));
+
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
@@ -66,6 +72,7 @@ const JobPage = () => {
             dataIndex: ["company", "name"],
             sorter: true,
             hideInSearch: true,
+            hideInTable: isHR,
         },
         {
             title: 'Mức lương',
@@ -150,7 +157,7 @@ const JobPage = () => {
                             }}
                             type=""
                             onClick={() => {
-                                navigate(`/admin/job/upsert?id=${entity.id}`)
+                                navigate(`upsert?id=${entity.id}`)
                             }}
                         />
                     </Access >
@@ -190,6 +197,13 @@ const JobPage = () => {
         if (clone.salary) parts.push(`salary ~ '${clone.salary}'`);
         if (clone?.level?.length) {
             parts.push(`${sfIn("level", clone.level).toString()}`);
+        }
+
+        // Lọc theo công ty nếu là HR
+        if (isHR && currentUser?.company?.id) {
+            parts.push(`company.id : ${currentUser.company.id}`);
+        } else if (isHR && currentUser?.company?.name) {
+            parts.push(`company.name ~ '${currentUser.company.name}'`);
         }
 
         clone.filter = parts.join(' and ');
@@ -234,7 +248,7 @@ const JobPage = () => {
             >
                 <DataTable<IJob>
                     actionRef={tableRef}
-                    headerTitle="Danh sách Jobs"
+                    headerTitle={isHR ? `Danh sách việc làm - ${currentUser?.company?.name || ''}` : "Danh sách Jobs"}
                     rowKey="id"
                     loading={isFetching}
                     columns={columns}

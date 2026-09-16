@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CodeOutlined, ContactsOutlined, FireOutlined, LogoutOutlined, MenuFoldOutlined, RiseOutlined, TwitterOutlined } from '@ant-design/icons';
+import { BankOutlined, CodeOutlined, ContactsOutlined, FireOutlined, LogoutOutlined, MenuFoldOutlined, RiseOutlined, TwitterOutlined } from '@ant-design/icons';
 import { Avatar, Drawer, Dropdown, MenuProps, Space, message } from 'antd';
 import { Menu, ConfigProvider } from 'antd';
 import styles from '@/styles/client.module.scss';
@@ -10,8 +10,11 @@ import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { callLogout } from '@/config/api';
 import { setLogoutAction } from '@/redux/slice/accountSlide';
+import { withBackendUrl } from '@/config/runtime';
 import ManageAccount from './modal/manage.account';
 import NotificationBell from './notification.bell';
+import ChatHeaderIcon from './chat.icon';
+import { MessageOutlined } from '@ant-design/icons';
 
 const Header = (props: any) => {
     const navigate = useNavigate();
@@ -64,6 +67,11 @@ const Header = (props: any) => {
         }
     }
 
+    const roleName = (user?.role?.name ?? "").toUpperCase();
+    const isSuperAdmin = user?.email === 'admin@gmail.com' || roleName === 'SUPER_ADMIN' || roleName.includes('ADMIN');
+    const isCandidate = roleName === 'USER' || roleName === 'NORMAL_USER' || roleName === 'CANDIDATE';
+    const isHR = !isCandidate && !isSuperAdmin && (roleName === 'HR' || roleName.includes('HR') || (Boolean(user?.company?.id) && Boolean(user?.role?.permissions?.length)));
+
     const itemsDropdown = [
         {
             label: <label
@@ -76,13 +84,21 @@ const Header = (props: any) => {
             key: 'manage-account',
             icon: <ContactsOutlined />
         },
-        ...(user.role?.permissions?.length && user.role?.name !== 'USER' && user.role?.name !== 'NORMAL_USER' ? [{
-            label: <Link
-                to={"/admin"}
-            >Trang Quản Trị</Link>,
+        {
+            label: <Link to={isSuperAdmin ? "/admin/chat" : isHR ? "/hr/chat" : "/chat"}>Tin nhắn & Trao đổi</Link>,
+            key: 'chat',
+            icon: <MessageOutlined style={{ color: '#2563eb' }} />
+        },
+        ...(isSuperAdmin ? [{
+            label: <Link to={"/admin"}>Trang Quản Trị Hệ Thống</Link>,
             key: 'admin',
-            icon: <FireOutlined />
-        },] : []),
+            icon: <FireOutlined style={{ color: '#dc2626' }} />
+        }] : []),
+        ...(isHR ? [{
+            label: <Link to={"/hr"}>Cổng Nhà Tuyển Dụng (HR)</Link>,
+            key: 'hr',
+            icon: <BankOutlined style={{ color: '#2563eb' }} />
+        }] : []),
 
         {
             label: <label
@@ -117,17 +133,19 @@ const Header = (props: any) => {
                                 >
 
                                     <Menu
-                                        // onClick={onClick}
                                         selectedKeys={[current]}
                                         mode="horizontal"
                                         items={items}
+                                        disabledOverflow={true}
+                                        style={{ minWidth: 420, borderBottom: 'none', background: 'transparent' }}
                                     />
                                 </ConfigProvider>
                                 <div className={styles['extra']}>
                                     {isAuthenticated === false ?
                                         <Link to={'/login'}>Đăng Nhập</Link>
                                         :
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <ChatHeaderIcon />
                                             <NotificationBell onOpenManageAccount={(tabKey: string) => {
                                                 setManageAccountActiveTab(tabKey);
                                                 setOpenManageAccount(true);
@@ -135,7 +153,9 @@ const Header = (props: any) => {
                                             <Dropdown menu={{ items: itemsDropdown }} trigger={['click']}>
                                                 <Space style={{ cursor: "pointer" }}>
                                                     <span>Welcome {user?.name}</span>
-                                                    <Avatar> {user?.name?.substring(0, 2)?.toUpperCase()} </Avatar>
+                                                    <Avatar src={user?.avatar ? withBackendUrl(`/storage/avatar/${user.avatar}`) : undefined} style={{ backgroundColor: '#3b82f6' }}>
+                                                        {!user?.avatar && (user?.name?.substring(0, 2)?.toUpperCase() || 'US')}
+                                                    </Avatar>
                                                 </Space>
                                             </Dropdown>
                                         </div>

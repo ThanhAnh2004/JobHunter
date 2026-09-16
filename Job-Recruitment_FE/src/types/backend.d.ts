@@ -21,6 +21,7 @@ export interface IAccount {
         id: string;
         email: string;
         name: string;
+        avatar?: string;
         role: {
             id: string;
             name: string;
@@ -35,6 +36,7 @@ export interface IAccount {
         company?: {
             id: string;
             name: string;
+            logo?: string;
         }
     }
 }
@@ -74,6 +76,7 @@ export interface IUser {
     age: number;
     gender: string;
     address: string;
+    avatar?: string;
     role?: {
         id: string;
         name: string;
@@ -120,6 +123,10 @@ export interface IResume {
     id?: string;
     email: string;
     userId: string;
+    user?: {
+        id: string | number;
+        name: string;
+    };
     url: string;
     status: string;
     companyId: string | {
@@ -187,4 +194,39 @@ export interface IDashboardStats {
     countReviewingResumes: number;
     countApprovedResumes: number;
     countRejectedResumes: number;
+}
+
+export interface IConversation {
+    id: number;
+    candidateId: number;
+    candidateName: string;
+    candidateEmail: string;
+    candidateAvatar?: string;
+    companyId: number;
+    companyName: string;
+    companyLogo?: string;
+    jobId?: number;
+    jobName?: string;
+    lastMessage?: string;
+    lastMessageAt?: string;
+    lastSenderId?: number;
+    unreadCount: number;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface IChatMessage {
+    id: number;
+    conversationId: number;
+    senderId: number;
+    senderName: string;
+    senderAvatar?: string;
+    content: string;
+    type: string;
+    isRead: boolean;
+    createdAt: string;
+}
+
+export interface IChatBadge {
+    unreadConversations: number;
 }

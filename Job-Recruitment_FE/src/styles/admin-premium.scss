@@ -1,22 +1,34 @@
-// Premium Admin Light Theme (Modern Minimalist / Tailwind UI style)
+// Premium Admin & HR Light Theme (Modern High-End SaaS / Linear / Tailwind UI style)
 
 // Root Variables
 $admin-bg: #f8fafc;
-$border-color: #e2e8f0;
+$border-color: #eef2f6;
+$border-light: #f1f5f9;
 $text-primary: #0f172a; // Slate-900 (High contrast)
 $text-secondary: #475569; // Slate-600
-$text-muted: #64748b; // Slate-500
-$primary-color: #1890ff;
-$active-bg-start: #e0f2fe; // Light blue
-$active-bg-end: #bae6fd;
-$active-border: #93c5fd;
-$active-text: #0369a1;
+$text-muted: #94a3b8; // Slate-400
+$primary-color: #2563eb;
 
-// Global container for admin
+// HR Theme Colors
+$hr-primary: #2563eb;
+$hr-primary-hover: #1d4ed8;
+$hr-active-bg-start: #eff6ff;
+$hr-active-bg-end: #f8faff;
+$hr-active-border: rgba(191, 219, 254, 0.8);
+$hr-active-text: #1d4ed8;
+
+// Admin Theme Colors
+$admin-primary: #dc2626;
+$admin-active-bg-start: #fef2f2;
+$admin-active-bg-end: #fff7f7;
+$admin-active-border: rgba(254, 202, 202, 0.8);
+$admin-active-text: #b91c1c;
+
+// Global container for admin & hr
 .layout-admin {
   background: $admin-bg !important;
   color: $text-primary !important;
-  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   min-height: 100vh;
 
   // Custom Scrollbar
@@ -39,95 +51,300 @@ $active-text: #0369a1;
   .ant-layout-sider {
     background: #ffffff !important;
     border-right: 1px solid $border-color;
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.02) !important;
+    box-shadow: 2px 0 16px rgba(15, 23, 42, 0.02) !important;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+
+    .ant-layout-sider-children {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
 
     .ant-layout-sider-trigger {
       background: #ffffff !important;
       border-top: 1px solid $border-color;
       border-right: 1px solid $border-color;
       color: $text-muted;
+      font-size: 14px;
+      transition: all 0.2s ease;
       &:hover {
-        color: $text-primary;
+        background: #f8fafc !important;
+        color: $primary-color;
       }
     }
   }
 
-  // Admin Logo styling
+  // Brand Logo Header styling
   .admin-logo {
-    height: 64px;
+    height: 68px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 18px;
-    font-weight: 800;
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    border-bottom: 1px solid $border-color;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid $border-light;
+    background: #ffffff;
+    user-select: none;
+    flex-shrink: 0;
 
-    .anticon {
+    .brand-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #ffffff;
       font-size: 20px;
-      color: #0284c7;
-      -webkit-text-fill-color: initial;
+      transition: transform 0.2s ease;
+
+      &.hr-icon-box {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      }
+
+      &.admin-icon-box {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+      }
+    }
+
+    &:hover .brand-icon-box {
+      transform: scale(1.04);
+    }
+
+    .brand-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      line-height: 1.25;
+
+      .brand-title {
+        font-weight: 700;
+        font-size: 14.5px;
+        color: $text-primary;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        letter-spacing: -0.01em;
+      }
+
+      .brand-badge {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 3px;
+        display: inline-block;
+        width: fit-content;
+        border-radius: 4px;
+        padding: 1px 6px;
+
+        &.hr-badge {
+          color: #2563eb;
+          background: #eff6ff;
+          border: 1px solid #dbeafe;
+        }
+
+        &.admin-badge {
+          color: #dc2626;
+          background: #fef2f2;
+          border: 1px solid #fee2e2;
+        }
+      }
     }
   }
 
-  // Sider Menu Overrides (Light Theme)
+  // Section Label in Sidebar
+  .menu-section-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 16px 18px 6px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  // Sider Menu Overrides (Modern High-End SaaS)
   .ant-menu {
     background: transparent !important;
     border-inline-end: none !important;
+    padding: 4px 0;
+    flex-grow: 1;
 
     .ant-menu-item {
       color: $text-secondary !important;
-      margin: 4px 12px !important;
-      width: calc(100% - 24px) !important;
-      border-radius: 8px !important;
-      transition: all 0.2s ease;
+      margin: 4px 10px !important;
+      width: calc(100% - 20px) !important;
+      height: 46px !important;
+      line-height: 46px !important;
+      padding: 0 14px !important;
+      border-radius: 10px !important;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
 
       a {
-        color: $text-secondary !important;
+        color: inherit !important;
         font-weight: 500;
-        transition: color 0.2s;
+        font-size: 13.5px;
+        letter-spacing: -0.01em;
+        transition: color 0.2s ease;
       }
 
       .ant-menu-item-icon {
-        font-size: 16px;
-        color: $text-muted;
-        transition: transform 0.2s;
+        font-size: 18px !important;
+        min-width: 18px !important;
+        margin-inline-end: 12px !important;
+        color: #64748b !important;
+        transition: transform 0.22s ease, color 0.22s ease;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
 
-      &:hover {
+      // Hover state
+      &:hover:not(.ant-menu-item-selected) {
         background: #f1f5f9 !important;
         color: $text-primary !important;
-        
+        transform: translateX(3px);
+
         a {
           color: $text-primary !important;
-        }
-        
-        .ant-menu-item-icon {
-          color: $text-primary;
-          transform: scale(1.1);
-        }
-      }
-
-      &.ant-menu-item-selected {
-        background: linear-gradient(135deg, $active-bg-start 0%, $active-bg-end 100%) !important;
-        border: 1px solid $active-border;
-        color: $active-text !important;
-
-        a {
-          color: $active-text !important;
           font-weight: 600;
         }
 
         .ant-menu-item-icon {
-          color: $active-text !important;
-          transform: scale(1.05);
+          color: $primary-color !important;
+          transform: scale(1.12);
         }
       }
+
+      // Selected / Active state for HR
+      &.ant-menu-item-selected {
+        background: linear-gradient(90deg, $hr-active-bg-start 0%, $hr-active-bg-end 100%) !important;
+        border: 1px solid $hr-active-border !important;
+        color: $hr-active-text !important;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08) !important;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 8px;
+          bottom: 8px;
+          width: 3.5px;
+          background: #2563eb;
+          border-radius: 0 4px 4px 0;
+        }
+
+        a {
+          color: $hr-active-text !important;
+          font-weight: 700 !important;
+        }
+
+        .ant-menu-item-icon {
+          color: #2563eb !important;
+          transform: scale(1.08);
+        }
+      }
+    }
+  }
+
+  // Admin Theme Menu Active Variation
+  &.admin-theme {
+    .ant-menu .ant-menu-item {
+      &:hover:not(.ant-menu-item-selected) .ant-menu-item-icon {
+        color: $admin-primary !important;
+      }
+
+      &.ant-menu-item-selected {
+        background: linear-gradient(90deg, $admin-active-bg-start 0%, $admin-active-bg-end 100%) !important;
+        border: 1px solid $admin-active-border !important;
+        color: $admin-active-text !important;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.08) !important;
+
+        &::before {
+          background: #dc2626;
+        }
+
+        a {
+          color: $admin-active-text !important;
+        }
+
+        .ant-menu-item-icon {
+          color: #dc2626 !important;
+        }
+      }
+    }
+  }
+
+  // Collapsed Sidebar Styles
+  .ant-layout-sider-collapsed {
+    .admin-logo {
+      justify-content: center;
+      padding: 14px 0;
+    }
+
+    .ant-menu .ant-menu-item {
+      padding: 0 !important;
+      margin: 4px 6px !important;
+      width: calc(100% - 12px) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+
+      .ant-menu-item-icon {
+        margin-inline-end: 0 !important;
+      }
+    }
+  }
+
+  // Sider Bottom Footer Widget
+  .sider-footer-card {
+    margin: 12px 12px 14px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    flex-shrink: 0;
+
+    .footer-card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: $text-primary;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .footer-card-desc {
+      font-size: 11px;
+      color: $text-muted;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+
+    .footer-card-btn {
+      width: 100%;
+      height: 28px;
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
   }
 
@@ -142,7 +359,7 @@ $active-text: #0369a1;
     border-bottom: 1px solid $border-color;
     height: 64px;
     padding: 0 24px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -160,15 +377,22 @@ $active-text: #0369a1;
       color: $text-secondary;
       
       .welcome-text {
-        font-weight: 500;
+        font-weight: 600;
         color: $text-primary;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: background 0.15s ease;
+
+        &:hover {
+          background: #f1f5f9;
+        }
       }
       
       .ant-avatar {
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 2px 8px rgba(3, 105, 161, 0.15);
-        font-weight: 600;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+        font-weight: 700;
       }
     }
   }
@@ -184,13 +408,13 @@ $active-text: #0369a1;
     background: #ffffff !important;
     border: 1px solid $border-color !important;
     border-radius: 12px !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
     transition: all 0.2s ease !important;
     overflow: hidden;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04) !important;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03) !important;
       border-color: #cbd5e1 !important;
     }
 
@@ -202,7 +426,7 @@ $active-text: #0369a1;
         color: $text-primary !important;
         font-weight: 700;
         font-size: 16px;
-        letter-spacing: 0.5px;
+        letter-spacing: -0.01em;
       }
     }
 
@@ -222,7 +446,7 @@ $active-text: #0369a1;
         font-size: 12px;
         color: $text-muted;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
         margin-bottom: 6px;
         font-weight: 600;
       }

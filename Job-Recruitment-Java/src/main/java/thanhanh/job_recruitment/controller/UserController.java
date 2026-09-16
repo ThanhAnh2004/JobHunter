@@ -146,15 +146,19 @@ public class UserController {
             if (currentUser == null || targetUser == null) {
                 throw new PermissionException("Không tìm thấy thông tin người dùng.");
             }
-            if (currentUser.getCompany() == null) {
-                if (currentUser.getId() != user.getId()) {
+
+            // Nếu người dùng cập nhật thông tin của chính mình
+            if (currentUser.getId() == user.getId()) {
+                // Cho phép người dùng tự cập nhật hồ sơ cá nhân
+            } else {
+                // Người dùng quản lý (HR) cập nhật tài khoản khác
+                if (currentUser.getCompany() == null) {
                     throw new PermissionException("Bạn không có quyền cập nhật thông tin của tài khoản khác!");
                 }
-            } else {
                 if (targetUser.getCompany() == null || currentUser.getCompany().getId() != targetUser.getCompany().getId()) {
                     throw new PermissionException("Bạn chỉ được phép cập nhật người dùng thuộc công ty của mình.");
                 }
-                if (user.getCompany() == null || currentUser.getCompany().getId() != user.getCompany().getId()) {
+                if (user.getCompany() != null && currentUser.getCompany().getId() != user.getCompany().getId()) {
                     throw new PermissionException("Bạn không thể thay đổi công ty của người dùng sang công ty khác.");
                 }
             }

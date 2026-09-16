@@ -1,6 +1,7 @@
-import { callUpdateResumeStatus, callGetAIMatchResume } from "@/config/api";
+import { callUpdateResumeStatus } from "@/config/api";
 import { IResume } from "@/types/backend";
-import { Badge, Button, Descriptions, Drawer, Form, Select, message, notification, Progress, Alert, Spin } from "antd";
+import { Button, Descriptions, Drawer, Form, Select, message, notification, Space } from "antd";
+import { CalendarOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
 import { useState, useEffect } from 'react';
 import { withBackendUrl } from "@/config/runtime";
@@ -12,36 +13,21 @@ interface IProps {
     dataInit: IResume | null | any;
     setDataInit: (v: any) => void;
     reloadTable: () => void;
+    onScheduleInterview?: (resume: IResume) => void;
 }
+
 const ViewDetailResume = (props: IProps) => {
     const [isSubmit, setIsSubmit] = useState<boolean>(false);
-    const [isAILoading, setIsAILoading] = useState<boolean>(false);
-    const [aiMatch, setAiMatch] = useState<any>(null);
-    const { onClose, open, dataInit, setDataInit, reloadTable } = props;
+    const { onClose, open, dataInit, setDataInit, reloadTable, onScheduleInterview } = props;
     const [form] = Form.useForm();
-
-    const handleAIMatch = async () => {
-        setIsAILoading(true);
-        const res = await callGetAIMatchResume(dataInit?.id);
-        if (res.data) {
-            setAiMatch(res.data);
-            message.success("Phân tích CV bằng AI thành công!");
-        } else {
-            notification.error({
-                message: 'Có lỗi xảy ra khi phân tích bằng AI',
-                description: res.message
-            });
-        }
-        setIsAILoading(false);
-    }
 
     const handleChangeStatus = async () => {
         setIsSubmit(true);
 
         const status = form.getFieldValue('status');
-        const res = await callUpdateResumeStatus(dataInit?.id, status)
+        const res = await callUpdateResumeStatus(dataInit?.id, status);
         if (res.data) {
-            message.success("Update Resume status thành công!");
+            message.success("Cập nhật trạng thái Resume thành công!");
             setDataInit(null);
             onClose(false);
             reloadTable();
@@ -53,32 +39,44 @@ const ViewDetailResume = (props: IProps) => {
         }
 
         setIsSubmit(false);
-    }
+    };
 
     useEffect(() => {
         if (dataInit) {
             form.setFieldValue("status", dataInit.status);
-            setAiMatch(null);
         }
         return () => form.resetFields();
-    }, [dataInit])
+    }, [dataInit]);
 
     return (
         <>
             <Drawer
-                title="Thông Tin Resume"
+                title="Thông Tin Hồ Sơ Ứng Tuyển"
                 placement="right"
-                onClose={() => { onClose(false); setDataInit(null) }}
+                onClose={() => { onClose(false); setDataInit(null); }}
                 open={open}
                 width={"40vw"}
                 maskClosable={false}
                 destroyOnClose
                 extra={
-
-                    <Button loading={isSubmit} type="primary" onClick={handleChangeStatus}>
-                        Change Status
-                    </Button>
-
+                    <Space>
+                        {onScheduleInterview && (
+                            <Button
+                                icon={<CalendarOutlined />}
+                                style={{ background: '#10b981', color: '#fff', borderColor: '#10b981' }}
+                                onClick={() => {
+                                    if (dataInit) {
+                                        onScheduleInterview(dataInit);
+                                    }
+                                }}
+                            >
+                                Đặt lịch phỏng vấn
+                            </Button>
+                        )}
+                        <Button loading={isSubmit} type="primary" onClick={handleChangeStatus}>
+                            Cập nhật trạng thái
+                        </Button>
+                    </Space>
                 }
             >
                 <Descriptions title="" bordered column={2} layout="vertical">
@@ -89,9 +87,6 @@ const ViewDetailResume = (props: IProps) => {
                         >
                             <Form.Item name={"status"}>
                                 <Select
-                                    // placeholder="Select a option and change input text above"
-                                    // onChange={onGenderChange}
-                                    // allowClear
                                     style={{ width: "100%" }}
                                     defaultValue={dataInit?.status}
                                 >
@@ -127,36 +122,10 @@ const ViewDetailResume = (props: IProps) => {
                             <span style={{ color: '#d9d9d9' }}>Không có file CV</span>
                         )}
                     </Descriptions.Item>
-                    <Descriptions.Item label="AI Match Score (Beta)" span={2}>
-                        {!aiMatch ? (
-                            <Button type="primary" ghost loading={isAILoading} onClick={handleAIMatch}>
-                                Đánh giá mức độ phù hợp với Job (AI)
-                            </Button>
-                        ) : (
-                            <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-                                <Progress 
-                                    type="circle" 
-                                    percent={aiMatch.score} 
-                                    strokeColor={aiMatch.score >= 70 ? '#52c41a' : aiMatch.score >= 40 ? '#faad14' : '#ff4d4f'}
-                                    format={percent => <span style={{fontSize: 20, fontWeight: 'bold'}}>{percent}%</span>}
-                                    size={80}
-                                />
-                                <Alert 
-                                    message="AI Nhận xét" 
-                                    description={aiMatch.reasoning} 
-                                    type={aiMatch.score >= 70 ? 'success' : aiMatch.score >= 40 ? 'warning' : 'error'} 
-                                    showIcon 
-                                    style={{ flex: 1 }}
-                                />
-                                <Button type="default" onClick={handleAIMatch} loading={isAILoading}>Đánh giá lại</Button>
-                            </div>
-                        )}
-                    </Descriptions.Item>
-
                 </Descriptions>
             </Drawer>
         </>
-    )
-}
+    );
+};
 
 export default ViewDetailResume;

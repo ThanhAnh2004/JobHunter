@@ -11,6 +11,8 @@ import { withBackendUrl } from "@/config/runtime";
 import { ICompany } from "@/types/backend";
 import { v4 as uuidv4 } from 'uuid';
 import enUS from 'antd/lib/locale/en_US';
+import { cleanHtmlDescription } from "@/config/utils";
+
 
 interface IProps {
     openModal: boolean;
@@ -47,7 +49,7 @@ const ModalCompany = (props: IProps) => {
 
     useEffect(() => {
         if (dataInit?.id && dataInit?.description) {
-            setValue(dataInit.description);
+            setValue(cleanHtmlDescription(dataInit.description));
             form.setFieldsValue({
                 name: dataInit.name,
                 address: dataInit.address,
@@ -67,9 +69,11 @@ const ModalCompany = (props: IProps) => {
             return;
         }
 
+        const cleanedDescription = cleanHtmlDescription(value);
+
         if (dataInit?.id) {
             //update
-            const res = await callUpdateCompany(dataInit.id, name, address, value, dataLogo[0].name);
+            const res = await callUpdateCompany(dataInit.id, name, address, cleanedDescription, dataLogo[0].name);
             if (res.data) {
                 message.success("Cập nhật company thành công");
                 handleReset();
@@ -82,7 +86,7 @@ const ModalCompany = (props: IProps) => {
             }
         } else {
             //create
-            const res = await callCreateCompany(name, address, value, dataLogo[0].name);
+            const res = await callCreateCompany(name, address, cleanedDescription, dataLogo[0].name);
             if (res.data) {
                 message.success("Thêm mới company thành công");
                 handleReset();

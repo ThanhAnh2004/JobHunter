@@ -156,7 +156,10 @@ const ModalUser = (props: IProps) => {
     async function fetchRoleList(name: string): Promise<ICompanySelect[]> {
         const res = await callFetchRole(`page=1&size=100&name=/${name}/i`);
         if (res && res.data) {
-            const list = res.data.result;
+            let list = res.data.result;
+            if (!isSuperAdmin) {
+                list = list.filter(item => item.name !== 'SUPER_ADMIN');
+            }
             const temp = list.map(item => {
                 return {
                     label: item.name as string,

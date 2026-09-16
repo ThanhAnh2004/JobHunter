@@ -19,10 +19,19 @@ public class GlobalHandlerException {
 
     @ExceptionHandler(value = {
             UsernameNotFoundException.class,
-            BadCredentialsException.class,
-            IdInvalidException.class
+            BadCredentialsException.class
     })
-    public ResponseEntity<RestResponse<Object>> handleIdException (Exception exception) {
+    public ResponseEntity<RestResponse<Object>> handleBadCredentialsException (Exception exception) {
+        RestResponse<Object> res = new RestResponse<>();
+        res.setMessage("Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!");
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setError("Thông tin đăng nhập không hợp lệ");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
+    @ExceptionHandler(value = IdInvalidException.class)
+    public ResponseEntity<RestResponse<Object>> handleIdException (IdInvalidException exception) {
         RestResponse<Object> res = new RestResponse<>();
         res.setMessage(exception.getMessage());
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());

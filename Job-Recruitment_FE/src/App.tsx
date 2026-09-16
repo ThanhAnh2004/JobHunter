@@ -11,12 +11,14 @@ import Loading from 'components/share/loading';
 import LoginPage from 'pages/auth/login';
 import RegisterPage from 'pages/auth/register';
 import LayoutAdmin from 'components/admin/layout.admin';
+import LayoutHR from 'components/hr/layout.hr';
 import ProtectedRoute from 'components/share/protected-route.ts';
 import Header from 'components/client/header.client';
 import Footer from 'components/client/footer.client';
 import HomePage from 'pages/home';
 import styles from 'styles/app.module.scss';
 import DashboardPage from './pages/admin/dashboard';
+import HrDashboardPage from './pages/hr/dashboard.hr';
 import CompanyPage from './pages/admin/company';
 import PermissionPage from './pages/admin/permission';
 import ResumePage from './pages/admin/resume';
@@ -31,6 +33,14 @@ import ClientJobDetailPage from './pages/job/detail';
 import ClientCompanyPage from './pages/company';
 import ClientCompanyDetailPage from './pages/company/detail';
 import JobTabs from './pages/admin/job/job.tabs';
+import ClientChatPage from './pages/chat';
+import HrChatPage from './pages/hr/chat.hr';
+import AdminChatPage from './pages/admin/chat.admin';
+import AboutPage from './pages/info/about';
+import TermsPage from './pages/info/terms';
+import PrivacyPage from './pages/info/privacy';
+import FaqPage from './pages/info/faq';
+import SiteSettingsPage from './pages/admin/settings';
 
 const LayoutClient = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,13 +89,19 @@ export default function App() {
         { path: "job", element: <ClientJobPage /> },
         { path: "job/:id", element: <ClientJobDetailPage /> },
         { path: "company", element: <ClientCompanyPage /> },
-        { path: "company/:id", element: <ClientCompanyDetailPage /> }
+        { path: "company/:id", element: <ClientCompanyDetailPage /> },
+        { path: "chat", element: <ClientChatPage /> },
+        { path: "about", element: <AboutPage /> },
+        { path: "terms", element: <TermsPage /> },
+        { path: "privacy", element: <PrivacyPage /> },
+        { path: "faq", element: <FaqPage /> },
       ],
     },
 
+    // Quản trị dành riêng cho Admin (/admin/*)
     {
       path: "/admin",
-      element: (<ProtectedRoute><LayoutApp><LayoutAdmin /></LayoutApp></ProtectedRoute>),
+      element: (<ProtectedRoute adminOnly={true}><LayoutApp><LayoutAdmin /></LayoutApp></ProtectedRoute>),
       errorElement: <NotFound />,
       children: [
         {
@@ -122,16 +138,63 @@ export default function App() {
           element: <InterviewPage />
         },
         {
+          path: "chat",
+          element: <AdminChatPage />
+        },
+        {
           path: "permission",
           element: <PermissionPage />
         },
         {
           path: "role",
           element: <RolePage />
+        },
+        {
+          path: "settings",
+          element: <SiteSettingsPage />
         }
       ],
     },
 
+    // Cổng thông tin & tuyển dụng dành riêng cho HR (/hr/*)
+    {
+      path: "/hr",
+      element: (<ProtectedRoute hrOnly={true}><LayoutApp><LayoutHR /></LayoutApp></ProtectedRoute>),
+      errorElement: <NotFound />,
+      children: [
+        {
+          index: true, element: <HrDashboardPage />
+        },
+        {
+          path: "job",
+          children: [
+            {
+              index: true,
+              element: <JobTabs />
+            },
+            {
+              path: "upsert", element: <ViewUpsertJob />
+            }
+          ]
+        },
+        {
+          path: "resume",
+          element: <ResumePage />
+        },
+        {
+          path: "interview",
+          element: <InterviewPage />
+        },
+        {
+          path: "company",
+          element: <CompanyPage />
+        },
+        {
+          path: "chat",
+          element: <HrChatPage />
+        }
+      ],
+    },
 
     {
       path: "/login",

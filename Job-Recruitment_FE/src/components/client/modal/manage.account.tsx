@@ -1,15 +1,16 @@
 import { Modal, Table, Tabs, Form, Input, Row, Col, Select, Button, message, notification, Skeleton, Avatar, Tag, Typography, Space, Divider } from "antd";
+import { CameraOutlined, UploadOutlined, LoadingOutlined } from "@ant-design/icons";
 import { isMobile } from "react-device-detect";
 import type { TabsProps } from 'antd';
 import { IResume } from "@/types/backend";
 import { useState, useEffect } from 'react';
-import { callFetchResumeByUser, callFetchUserById, callUpdateUser, callChangePassword, callFetchAllSkill, callFetchSubscriberSkills, callCreateSubscriber, callUpdateSubscriber, callFetchInterview, callCandidateRespondInterview } from "@/config/api";
+import { callFetchResumeByUser, callFetchUserById, callUpdateUser, callChangePassword, callFetchAllSkill, callFetchSubscriberSkills, callCreateSubscriber, callUpdateSubscriber, callFetchInterview, callCandidateRespondInterview, callUploadSingleFile } from "@/config/api";
 import { withBackendUrl } from "@/config/runtime";
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { useAppSelector } from "@/redux/hooks";
 import { useDispatch } from "react-redux";
-import { setUserLoginInfo } from "@/redux/slice/accountSlide";
+import { setUserLoginInfo, setUserAvatar } from "@/redux/slice/accountSlide";
 
 interface IProps {
     open: boolean;
@@ -39,11 +40,16 @@ const UserInterviews = (props: any) => {
 
     const fetchData = async () => {
         setIsFetching(true);
-        const res = await callFetchInterview("current=1&pageSize=100");
-        if (res && res.data) {
-            setListInterviews(res.data.result || []);
+        try {
+            const res = await callFetchInterview("page=1&size=100&sort=interviewTime,desc");
+            if (res && res.data) {
+                setListInterviews(res.data.result || []);
+            }
+        } catch (error) {
+            console.error("Error fetching candidate interviews:", error);
+        } finally {
+            setIsFetching(false);
         }
-        setIsFetching(false);
     };
 
     useEffect(() => {
@@ -120,23 +126,41 @@ const UserInterviews = (props: any) => {
             render: (text: string) => <span style={{ fontWeight: 600, color: '#0f172a' }}>{text}</span>
         },
         {
+            title: 'Công ty',
+            key: 'company',
+            render: (record: any) => (
+                <span style={{ fontWeight: 600, color: '#2563eb' }}>
+                    {record?.job?.company?.name || 'N/A'}
+                </span>
+            )
+        },
+        {
+            title: 'Công việc',
+            dataIndex: ['job', 'name'],
+            render: (text: string) => text || 'N/A'
+        },
+        {
             title: 'Thời gian',
             dataIndex: 'interviewTime',
-            render: (value: any) => dayjs(value).format('DD-MM-YYYY HH:mm')
+            render: (value: any) => (
+                <span style={{ whiteSpace: 'nowrap' }}>
+                    {value ? dayjs(value).format('DD-MM-YYYY HH:mm') : 'Chưa xếp'}
+                </span>
+            )
         },
         {
             title: 'Địa điểm / Link',
             dataIndex: 'location',
             render: (text: string) => {
                 if (text && (text.startsWith("http://") || text.startsWith("https://"))) {
-                    return <a href={text} target="_blank" rel="noopener noreferrer" style={{ color: '#2f54eb' }}>{text}</a>;
+                    return (
+                        <a href={text} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 500 }}>
+                            {text.length > 30 ? text.substring(0, 30) + '...' : text}
+                        </a>
+                    );
                 }
-                return text;
+                return text || 'N/A';
             }
-        },
-        {
-            title: 'Công việc',
-            dataIndex: ['job', 'name']
         },
         {
             title: 'Trạng thái',
@@ -173,8 +197,9 @@ const UserInterviews = (props: any) => {
                             setCandidateNote(record?.candidateNote || '');
                             setRespondModal({ open: true, interview: record });
                         }}
+                        style={canRespond ? { background: '#2563eb' } : {}}
                     >
-                        {canRespond ? 'Phản hồi' : 'Xem chi tiết'}
+                        {canRespond ? 'Phản hồi' : 'Chi tiết'}
                     </Button>
                 );
             }
@@ -186,6 +211,14 @@ const UserInterviews = (props: any) => {
 
     return (
         <div style={{ padding: '16px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <span style={{ fontSize: 14, color: '#64748b' }}>
+                    Danh sách các buổi phỏng vấn được gửi từ nhà tuyển dụng:
+                </span>
+                <Button size="small" onClick={fetchData} loading={isFetching}>
+                    Tải lại danh sách
+                </Button>
+            </div>
             <Table
                 columns={columns}
                 dataSource={listInterviews}
@@ -306,7 +339,9 @@ const UserInterviews = (props: any) => {
 const UserProfileInfo = () => {
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const user = useAppSelector(state => state.account.user);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -322,6 +357,66 @@ const UserProfileInfo = () => {
         fetchProfile();
     }, [user]);
 
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const isImage = file.type.startsWith('image/');
+        if (!isImage) {
+            message.error('Vui lòng chọn file hình ảnh (PNG, JPG, JPEG)!');
+            return;
+        }
+
+        const isLt5M = file.size / 1024 / 1024 < 5;
+        if (!isLt5M) {
+            message.error('Kích thước ảnh phải nhỏ hơn 5MB!');
+            return;
+        }
+
+        setIsUploadingAvatar(true);
+        try {
+            const resUpload = await callUploadSingleFile(file, 'avatar');
+            if (resUpload && resUpload.data && resUpload.data.fileName) {
+                const avatarFileName = resUpload.data.fileName;
+                const resUpdate = await callUpdateUser({
+                    id: profile.id,
+                    avatar: avatarFileName,
+                    name: profile.name,
+                    email: profile.email,
+                    age: profile.age,
+                    gender: profile.gender,
+                    address: profile.address,
+                    company: profile.company,
+                    role: profile.role
+                } as any);
+
+                if (resUpdate && resUpdate.data) {
+                    setProfile((prev: any) => ({ ...prev, avatar: avatarFileName }));
+                    dispatch(setUserAvatar(avatarFileName));
+                    message.success('Cập nhật ảnh đại diện thành công!');
+                } else {
+                    notification.error({
+                        message: 'Có lỗi xảy ra',
+                        description: resUpdate?.message || 'Không thể cập nhật ảnh đại diện.'
+                    });
+                }
+            } else {
+                notification.error({
+                    message: 'Tải ảnh thất bại',
+                    description: resUpload?.message || 'Không thể tải ảnh lên máy chủ.'
+                });
+            }
+        } catch (error: any) {
+            notification.error({
+                message: 'Lỗi tải ảnh',
+                description: error?.response?.data?.message || error?.message || 'Đã có lỗi xảy ra khi tải ảnh lên.'
+            });
+        } finally {
+            setIsUploadingAvatar(false);
+            if (e.target) e.target.value = '';
+        }
+    };
+
     if (loading) {
         return <Skeleton active style={{ padding: '20px 0' }} />;
     }
@@ -331,57 +426,113 @@ const UserProfileInfo = () => {
     }
 
     return (
-        <div style={{ padding: '20px 0' }}>
-            <Row gutter={[24, 24]}>
-                <Col span={24} md={8}>
+        <div style={{ padding: '12px 0 8px 0' }}>
+            <Row gutter={[20, 20]} style={{ display: 'flex', alignItems: 'stretch' }}>
+                <Col span={24} md={8} style={{ display: 'flex' }}>
                     <div style={{ 
+                        flex: 1,
                         background: '#f8fafc', 
-                        padding: '32px 24px', 
+                        padding: '24px 20px', 
                         borderRadius: '12px', 
                         textAlign: 'center', 
                         border: '1px solid #e2e8f0',
-                        height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        boxSizing: 'border-box'
                     }}>
-                        <Avatar size={90} style={{ backgroundColor: '#3b82f6', fontSize: '36px', marginBottom: '16px', fontWeight: 600 }}>
-                            {profile.name?.substring(0, 2)?.toUpperCase()}
-                        </Avatar>
-                        <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#0f172a', margin: '0 0 6px 0' }}>{profile.name}</h3>
-                        <p style={{ color: '#64748b', margin: '0 0 20px 0', fontSize: '14px' }}>{profile.email}</p>
+                        <div style={{ position: 'relative', display: 'inline-block', marginBottom: '16px' }}>
+                            <Avatar 
+                                size={96} 
+                                src={profile.avatar ? withBackendUrl(`/storage/avatar/${profile.avatar}`) : undefined}
+                                style={{ 
+                                    backgroundColor: '#3b82f6', 
+                                    fontSize: '36px', 
+                                    fontWeight: 600,
+                                    boxShadow: '0 4px 14px rgba(59, 130, 246, 0.25)',
+                                    border: '3px solid #ffffff'
+                                }}
+                            >
+                                {!profile.avatar && (profile.name?.substring(0, 2)?.toUpperCase() || 'US')}
+                            </Avatar>
+                            <label
+                                htmlFor="avatar-upload-file-input"
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    right: 0,
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    background: '#2563eb',
+                                    color: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                                    transition: 'all 0.2s',
+                                    border: '2px solid #ffffff'
+                                }}
+                                title="Chọn ảnh đại diện mới"
+                            >
+                                {isUploadingAvatar ? <LoadingOutlined /> : <CameraOutlined style={{ fontSize: 16 }} />}
+                            </label>
+                            <input
+                                type="file"
+                                id="avatar-upload-file-input"
+                                accept="image/png, image/jpeg, image/jpg"
+                                style={{ display: 'none' }}
+                                onChange={handleAvatarChange}
+                                disabled={isUploadingAvatar}
+                            />
+                        </div>
+                        <Button
+                            size="small"
+                            icon={isUploadingAvatar ? <LoadingOutlined /> : <UploadOutlined />}
+                            loading={isUploadingAvatar}
+                            onClick={() => document.getElementById('avatar-upload-file-input')?.click()}
+                            style={{ marginBottom: 14, borderRadius: 6, fontSize: 12 }}
+                        >
+                            Đổi ảnh đại diện
+                        </Button>
+                        <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px 0' }}>{profile.name}</h3>
+                        <p style={{ color: '#64748b', margin: '0 0 16px 0', fontSize: '13px', wordBreak: 'break-all' }}>{profile.email}</p>
                         <span style={{ 
                             background: '#eff6ff', 
                             color: '#1d4ed8', 
-                            padding: '6px 16px', 
+                            padding: '4px 14px', 
                             borderRadius: '9999px', 
-                            fontSize: '13px', 
+                            fontSize: '12px', 
                             fontWeight: 600 
                         }}>
                             {profile.role?.name || 'USER'}
                         </span>
                     </div>
                 </Col>
-                <Col span={24} md={16}>
+                <Col span={24} md={16} style={{ display: 'flex' }}>
                     <div style={{ 
+                        flex: 1,
                         background: '#ffffff', 
                         padding: '24px', 
                         borderRadius: '12px', 
                         border: '1px solid #e2e8f0',
-                        height: '100%'
+                        display: 'flex',
+                        flexDirection: 'column',
+                        boxSizing: 'border-box'
                     }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                        <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#0f172a', marginBottom: '18px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
                             Thông tin cá nhân
                         </h3>
-                        <Row gutter={[20, 20]}>
+                        <Row gutter={[20, 16]}>
                             <Col span={12}>
                                 <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>Họ và tên</div>
                                 <div style={{ fontSize: '15px', fontWeight: 500, color: '#1e293b' }}>{profile.name}</div>
                             </Col>
                             <Col span={12}>
                                 <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>Địa chỉ Email</div>
-                                <div style={{ fontSize: '15px', fontWeight: 500, color: '#1e293b' }}>{profile.email}</div>
+                                <div style={{ fontSize: '15px', fontWeight: 500, color: '#1e293b', wordBreak: 'break-all' }}>{profile.email}</div>
                             </Col>
                             <Col span={12}>
                                 <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>Tuổi</div>
@@ -524,7 +675,9 @@ const UserUpdateInfo = (props: any) => {
         const { id, name, email, age, gender, address } = values;
         setIsSubmit(true);
         const res = await callUpdateUser({
-            id, name, email, age: +age, gender, address
+            id, name, email, age: +age, gender, address,
+            company: user.company,
+            role: user.role
         } as any);
         setIsSubmit(false);
 
@@ -534,6 +687,7 @@ const UserUpdateInfo = (props: any) => {
                 id: res.data.id,
                 email: res.data.email,
                 name: res.data.name,
+                avatar: res.data.avatar || user.avatar,
                 role: user.role
             }));
         } else {
@@ -842,17 +996,17 @@ const ManageAccount = (props: IProps) => {
                 maskClosable={false}
                 footer={null}
                 destroyOnClose={true}
-                width={isMobile ? "100%" : "1000px"}
+                width={isMobile ? "100%" : "950px"}
+                bodyStyle={{ padding: '8px 24px 20px 24px' }}
+                styles={{ body: { padding: '8px 24px 20px 24px' } }}
             >
-
-                <div style={{ minHeight: 400 }}>
+                <div style={{ minHeight: 380 }}>
                     <Tabs
                         activeKey={activeKey}
                         items={items}
                         onChange={onChange}
                     />
                 </div>
-
             </Modal>
         </>
     )

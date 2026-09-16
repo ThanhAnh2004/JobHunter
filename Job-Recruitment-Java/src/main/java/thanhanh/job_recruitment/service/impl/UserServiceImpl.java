@@ -61,6 +61,7 @@ public class UserServiceImpl implements UserService {
                     .age(user.getAge())
                     .address(user.getAddress())
                     .gender(user.getGender())
+                    .avatar(user.getAvatar())
                     .company(company)
                     .role(role)
                     .build();
@@ -155,6 +156,9 @@ public class UserServiceImpl implements UserService {
         if (user.getAddress() != null) {
             currentUser.setAddress(user.getAddress());
         }
+        if (user.getAvatar() != null) {
+            currentUser.setAvatar(user.getAvatar());
+        }
 
         this.userRepository.save(currentUser);
 
@@ -202,6 +206,7 @@ public class UserServiceImpl implements UserService {
                 .age(user.getAge())
                 .gender(user.getGender())
                 .address(user.getAddress())
+                .avatar(user.getAvatar())
                 .role(user.getRole() != null ? this.mapperRoleToRoleUser(user.getRole()) : null)
                 .company(user.getCompany() != null ? this.mapperCompanyToCompanyUser(user.getCompany()) : null)
                 .createdAt(user.getCreatedAt())

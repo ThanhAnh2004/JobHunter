@@ -105,7 +105,17 @@ public class InterviewScheduleServiceImpl implements InterviewScheduleService {
 
         // Verify that the current user is the candidate of this interview
         String currentEmail = SecurityUtil.getCurrentUserLogin().orElse("");
-        if (schedule.getCandidate() == null || !schedule.getCandidate().getEmail().equals(currentEmail)) {
+        User currentUser = this.userRepository.findByEmail(currentEmail).orElse(null);
+        boolean isOwner = false;
+        if (currentUser != null && schedule.getCandidate() != null) {
+            if (schedule.getCandidate().getId() == currentUser.getId()) {
+                isOwner = true;
+            }
+            if (schedule.getCandidate().getEmail() != null && schedule.getCandidate().getEmail().equalsIgnoreCase(currentEmail)) {
+                isOwner = true;
+            }
+        }
+        if (!isOwner) {
             throw new PermissionException("Bạn không có quyền thực hiện hành động này");
         }
 
@@ -205,12 +215,34 @@ public class InterviewScheduleServiceImpl implements InterviewScheduleService {
             this.messagingTemplate.convertAndSend("/topic/notifications/" + schedule.getCandidate().getId(), messageTitle);
 
             // Email
-            String emailContent = "<h3>" + messageTitle + "</h3>"
-                    + "<p><strong>Vị trí:</strong> " + schedule.getJob().getName() + "</p>"
-                    + "<p><strong>Công ty:</strong> " + schedule.getJob().getCompany().getName() + "</p>"
-                    + "<p><strong>Thời gian:</strong> " + schedule.getInterviewTime().toString() + "</p>"
-                    + "<p><strong>Địa điểm / Link:</strong> " + schedule.getLocation() + "</p>";
-            this.emailService.sendEmailSync(schedule.getCandidate().getEmail(), "Thông báo lịch phỏng vấn", emailContent, false, true);
+            try {
+                String jobName = schedule.getJob() != null ? schedule.getJob().getName() : "Không xác định";
+                String companyName = (schedule.getJob() != null && schedule.getJob().getCompany() != null) 
+                        ? schedule.getJob().getCompany().getName() : "Nhà tuyển dụng";
+                String formattedTime = schedule.getInterviewTime() != null 
+                        ? java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+                            .withZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
+                            .format(schedule.getInterviewTime())
+                        : "Chưa xác định";
+
+                String emailContent = "<div style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">"
+                        + "<h2 style=\"color: #2563eb;\">" + messageTitle + "</h2>"
+                        + "<p>Xin chào <strong>" + schedule.getCandidate().getName() + "</strong>,</p>"
+                        + "<p>Bạn đã nhận được lịch phỏng vấn với thông tin chi tiết như sau:</p>"
+                        + "<table style=\"border-collapse: collapse; width: 100%; max-width: 500px; margin: 16px 0;\">"
+                        + "<tr><td style=\"padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; background: #f8fafc;\">Công ty:</td><td style=\"padding: 8px; border: 1px solid #e2e8f0;\">" + companyName + "</td></tr>"
+                        + "<tr><td style=\"padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; background: #f8fafc;\">Vị trí ứng tuyển:</td><td style=\"padding: 8px; border: 1px solid #e2e8f0;\">" + jobName + "</td></tr>"
+                        + "<tr><td style=\"padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; background: #f8fafc;\">Thời gian:</td><td style=\"padding: 8px; border: 1px solid #e2e8f0;\">" + formattedTime + "</td></tr>"
+                        + "<tr><td style=\"padding: 8px; border: 1px solid #e2e8f0; font-weight: bold; background: #f8fafc;\">Địa điểm / Link họp:</td><td style=\"padding: 8px; border: 1px solid #e2e8f0;\">" + schedule.getLocation() + "</td></tr>"
+                        + "</table>"
+                        + "<p>Vui lòng đăng nhập vào hệ thống để xác nhận tham gia hoặc gửi ghi chú phản hồi cho nhà tuyển dụng.</p>"
+                        + "<p>Trân trọng,<br/><strong>" + companyName + "</strong></p>"
+                        + "</div>";
+
+                this.emailService.sendEmailSync(schedule.getCandidate().getEmail(), "Thông báo lịch phỏng vấn: " + schedule.getTitle(), emailContent, false, true);
+            } catch (Exception e) {
+                System.err.println(">>> Error sending interview email notification: " + e.getMessage());
+            }
         }
     }
 }

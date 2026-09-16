@@ -51,6 +51,17 @@ public class CompanyController {
             @Filter Specification<Company> spec,
             Pageable pageable
             )  {
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = this.userRepository.findByEmail(email).orElse(null);
+        boolean isSuperAdmin = email.equals("admin@gmail.com") || 
+            (currentUser != null && currentUser.getRole() != null && "SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole().getName()));
+        boolean isHR = currentUser != null && currentUser.getRole() != null && "HR".equalsIgnoreCase(currentUser.getRole().getName());
+
+        if (!isSuperAdmin && isHR && currentUser.getCompany() != null) {
+            Specification<Company> companySpec = (root, query, cb) -> cb.equal(root.get("id"), currentUser.getCompany().getId());
+            spec = spec == null ? companySpec : spec.and(companySpec);
+        }
+
         return ResponseEntity.ok().body(this.companyService.fetchAllCompany(spec, pageable));
     }
 

@@ -67,11 +67,22 @@ public class AuthController {
         UserLoginResponse user = new UserLoginResponse();
 
         if (currentUser != null) {
+            UserLoginResponse.CompanyUser companyUser = null;
+            if (currentUser.getCompany() != null) {
+                companyUser = UserLoginResponse.CompanyUser.builder()
+                        .id(currentUser.getCompany().getId())
+                        .name(currentUser.getCompany().getName())
+                        .logo(currentUser.getCompany().getLogo())
+                        .build();
+            }
+
             user = UserLoginResponse.builder()
                     .id(currentUser.getId())
                     .email(currentUser.getEmail())
                     .name(currentUser.getName())
+                    .avatar(currentUser.getAvatar())
                     .role(currentUser.getRole())
+                    .company(companyUser)
                     .build();
         }
 
@@ -113,11 +124,22 @@ public class AuthController {
        UserLoginResponse userLogin = new UserLoginResponse();
 
         if (currentUser != null) {
+            UserLoginResponse.CompanyUser companyUser = null;
+            if (currentUser.getCompany() != null) {
+                companyUser = UserLoginResponse.CompanyUser.builder()
+                        .id(currentUser.getCompany().getId())
+                        .name(currentUser.getCompany().getName())
+                        .logo(currentUser.getCompany().getLogo())
+                        .build();
+            }
+
             userLogin = UserLoginResponse.builder()
                     .id(currentUser.getId())
                     .email(currentUser.getEmail())
                     .name(currentUser.getName())
+                    .avatar(currentUser.getAvatar())
                     .role(currentUser.getRole())
+                    .company(companyUser)
                     .build();
         }
 
@@ -150,6 +172,7 @@ public class AuthController {
                     .id(currentUser.getId())
                     .email(currentUser.getEmail())
                     .name(currentUser.getName())
+                    .avatar(currentUser.getAvatar())
                     .role(currentUser.getRole())
                     .build();
 

@@ -106,7 +106,7 @@ instance.interceptors.response.use(
             error.config && error.response
             && +error.response.status === 400
             && error.config.url === '/api/v1/auth/refresh'
-            && location.pathname.startsWith("/admin")
+            && (location.pathname.startsWith("/admin") || location.pathname.startsWith("/hr"))
         ) {
             const message = error?.response?.data?.error ?? "Có lỗi xảy ra, vui lòng login.";
             //dispatch redux action
