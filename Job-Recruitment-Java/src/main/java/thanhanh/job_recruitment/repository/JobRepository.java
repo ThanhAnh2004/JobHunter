@@ -10,9 +10,13 @@ import java.util.List;
 
 import thanhanh.job_recruitment.domain.Company;
 
+import java.util.Optional;
+
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificationExecutor<Job> {
     boolean existsById(long id);
+    boolean existsByName(String name);
+    Optional<Job> findByName(String name);
     List<Job> findBySkillsIn(List<Skill> skills);
     long countByCompany(Company company);
 }

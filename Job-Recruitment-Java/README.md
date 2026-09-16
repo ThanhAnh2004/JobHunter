@@ -110,10 +110,14 @@ Quy trình xử lý tự động phân tích CV cực kỳ tinh vi:
 2.  **Prompt Engineering:** Kết hợp văn bản CV trích xuất với mô tả chi tiết công việc cùng danh sách kỹ năng yêu cầu của Job để biên dịch thành một Prompt chuyên sâu.
 3.  **Structured JSON AI Output:** Cấu hình thuộc tính `responseMimeType: "application/json"` trên yêu cầu gửi tới Gemini API để ép mô hình AI trả về kết quả tuân thủ nghiêm ngặt định dạng đối tượng JSON mà không có bất kỳ ký tự Markdown dư thừa nào, giúp hệ thống hoạt động ổn định và tin cậy tuyệt đối.
 
-### 4. Giao Tiếp Thời Gian Thực & Gửi Thông Báo Tự Động
-*   **STOMP WebSockets:** Cung cấp kênh kết nối thời gian thực `/ws`. Khi HR thực hiện cập nhật trạng thái CV (Ví dụ: Từ `REVIEWING` sang `APPROVED` hoặc khởi tạo lịch phỏng vấn mới), Backend lập tức gửi thông báo thời gian thực đến kênh đăng ký riêng của ứng viên (`/topic/notifications/{userId}`).
+### 4. Giao Tiếp Thời Gian Thực, Nhắn Tin Trực Tuyến & Gửi Thông Báo Tự Động
+*   **STOMP WebSockets & Live Chat:** Cung cấp kênh kết nối thời gian thực `/ws`. Hỗ trợ hệ thống **Nhắn tin trực tuyến (Live Chat)** 1-1 giữa Ứng viên và Nhà tuyển dụng (HR/Admin) với trạng thái tin nhắn và số lượng tin chưa đọc.
+*   **Thông báo trạng thái & Lịch phỏng vấn:** Khi HR cập nhật trạng thái CV (Từ `REVIEWING` sang `APPROVED`) hoặc khởi tạo lịch phỏng vấn, Backend lập tức đẩy thông báo thời gian thực đến kênh riêng của ứng viên (`/topic/notifications/{userId}`).
 *   **Quản lý thông báo:** Người dùng có thể đọc, đánh dấu đã đọc, xóa từng thông báo hoặc xóa toàn bộ thông báo trực tiếp từ dropdown quả chuông ở thanh điều hướng.
 *   **Spring Mail:** Đồng bộ hóa gửi mail thông báo lịch phỏng vấn tự động đến email của ứng viên với giao diện HTML thiết kế chuyên nghiệp hiển thị chi tiết thời gian, địa điểm/link họp và công ty.
+
+### 5. Quản Lý Cấu Hình Hệ Thống Động (Dynamic Site Settings)
+*   Cho phép Super Admin tùy biến Logo website, Tiêu đề trang, Banner Hero, Thông tin liên hệ và Mạng xã hội trực tiếp từ API và Admin UI mà không cần can thiệp vào mã nguồn.
 
 ---
 
@@ -129,10 +133,14 @@ src/main/java/thanhanh/job_recruitment/
   ├── controller/         # Lớp Controller tiếp nhận HTTP Request, định tuyến API
   │    ├── AuthController.java          # Đăng nhập, đăng ký, refresh token
   │    ├── UserController.java          # Quản trị người dùng (Phân quyền scoped theo công ty của HR)
+  │    ├── ChatController.java          # Nhắn tin thời gian thực 1-1 qua REST & WebSocket
+  │    ├── SiteSettingController.java   # Cấu hình website động (Logo, Banner, Info)
   │    ├── InterviewScheduleController.java # Quản lý lịch phỏng vấn (Bypass cho ứng viên phản hồi)
   │    └── NotificationController.java  # Lấy, xóa và quản lý thông báo của người dùng
   ├── domain/             # Các JPA Entity định nghĩa cấu trúc bảng trong MySQL Database
   │    ├── User.java, Company.java, Job.java, Permission.java, Role.java
+  │    ├── ChatMessage.java, ChatConversation.java # Lưu trữ tin nhắn và cuộc trò chuyện
+  │    ├── SiteSetting.java             # Lưu cấu hình thương hiệu và website
   │    ├── InterviewSchedule.java       # Lưu lịch, trạng thái phản hồi và ghi chú đề xuất của ứng viên
   │    └── Notification.java            # Lưu trữ thông báo của người dùng
   ├── dto/                # Data Transfer Objects
@@ -141,6 +149,8 @@ src/main/java/thanhanh/job_recruitment/
   ├── repository/         # Lớp truy vấn Database (Kế thừa JpaRepository & JpaSpecificationExecutor)
   ├── service/            # Interface định nghĩa các dịch vụ nghiệp vụ chính
   │    ├── impl/          # Hiện thực hóa chi tiết logic nghiệp vụ (Service Implementations)
+  │    │    ├── ChatServiceImpl.java              # Nghiệp vụ trò chuyện và gửi tin nhắn
+  │    │    ├── SiteSettingServiceImpl.java       # Nghiệp vụ quản lý cấu hình trang
   │    │    └── InterviewScheduleServiceImpl.java # Xử lý phản hồi lịch, cập nhật DB, thông báo WebSocket cho HR
   │    ├── FileExtractionService.java   # Trích xuất văn bản từ tệp CV qua Apache Tika
   │    └── GeminiAIService.java         # Gọi API Google Gemini chấm điểm độ tương thích
@@ -202,10 +212,11 @@ Mở cửa sổ Command Prompt/PowerShell tại thư mục gốc của Java Back
 
 Khi màn hình Terminal xuất hiện thông báo `Started JobRecruitmentApplication...` và chạy Database Seeding, hệ thống đã khởi chạy thành công. Ở lần chạy đầu tiên, Hibernate sẽ tự động đồng bộ hóa tạo toàn bộ cấu trúc bảng và seeder dữ liệu mẫu (Database Seeding) bao gồm các tài khoản, vai trò, quyền, công ty, job tuyển dụng và các CV mẫu để bạn có thể trải nghiệm ngay lập tức.
 
-#### 4. Xem tài liệu API (Swagger UI):
+#### 4. Xem tài liệu API (Swagger UI) & Demo Accounts:
 Bạn truy cập tài liệu API trực quan hóa theo đường dẫn:
 `http://localhost:8080/swagger-ui.html`
 
-Tài khoản Super Admin mặc định:
-*   **Email:** `admin@gmail.com`
-*   **Mật khẩu:** `123456`
+Tài khoản trải nghiệm mẫu:
+*   👑 **Super Admin:** `admin@gmail.com` / `123456`
+*   🏢 **HR Recruiter:** `hr@gmail.com` / `123456`
+*   👨‍💻 **Candidate:** `thanhanh818757@gmail.com` / `123456`
