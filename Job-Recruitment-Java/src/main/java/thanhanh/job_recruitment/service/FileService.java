@@ -25,7 +25,7 @@ public class FileService {
         File tmpDir = new File(path.toString());
         if (!tmpDir.isDirectory()) {
             try {
-                Files.createDirectory(tmpDir.toPath());
+                Files.createDirectories(tmpDir.toPath());
                 System.out.println(">>> CREATE NEW DIRECTORY SUCCESSFUL, PATH = " + tmpDir.toPath());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -33,7 +33,6 @@ public class FileService {
         } else {
             System.out.println(">>> SKIP MAKING DIRECTORY, ALREADY EXISTS");
         }
-
     }
 
     public String storeFile(MultipartFile file, String folder) throws URISyntaxException, IOException {
@@ -62,6 +61,9 @@ public class FileService {
 
         URI uri = new URI(baseURI + folder + "/" + finalName);
         Path path = Paths.get(uri);
+        if (path.getParent() != null && !Files.exists(path.getParent())) {
+            Files.createDirectories(path.getParent());
+        }
         try (InputStream inputStream = file.getInputStream()) {
             Files.copy(inputStream, path,
                     StandardCopyOption.REPLACE_EXISTING);

@@ -12,6 +12,8 @@ interface IProps {
     showPagination?: boolean;
 }
 
+const DEFAULT_COMPANY_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%23eff6ff'/%3E%3Cpath d='M30 75V35l20-10 20 10v40H55V55H45v20H30z' fill='%233b82f6'/%3E%3C/svg%3E";
+
 const CompanyCard = (props: IProps) => {
     const { showPagination = false } = props;
 
@@ -120,7 +122,13 @@ const CompanyCard = (props: IProps) => {
                                             <div className={styles["logo-box"]}>
                                                 <img
                                                     alt={item.name}
-                                                    src={withBackendUrl(`/storage/company/${item?.logo}`)}
+                                                    src={item?.logo ? withBackendUrl(`/storage/company/${item?.logo}`) : DEFAULT_COMPANY_LOGO}
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        if (target.src !== DEFAULT_COMPANY_LOGO) {
+                                                            target.src = DEFAULT_COMPANY_LOGO;
+                                                        }
+                                                    }}
                                                 />
                                             </div>
                                             <div className={styles["company-info"]}>
@@ -163,7 +171,13 @@ const CompanyCard = (props: IProps) => {
                                             <div className={styles["logo-container"]} style={{ position: 'relative' }}>
                                                 <img
                                                     alt={item.name}
-                                                    src={withBackendUrl(`/storage/company/${item?.logo}`)}
+                                                    src={item?.logo ? withBackendUrl(`/storage/company/${item?.logo}`) : DEFAULT_COMPANY_LOGO}
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        if (target.src !== DEFAULT_COMPANY_LOGO) {
+                                                            target.src = DEFAULT_COMPANY_LOGO;
+                                                        }
+                                                    }}
                                                 />
                                                 <div style={{
                                                     position: 'absolute',
