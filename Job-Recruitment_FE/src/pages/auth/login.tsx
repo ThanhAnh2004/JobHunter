@@ -29,16 +29,14 @@ const LoginPage = () => {
 
     const getRedirectUrl = (userData?: any) => {
         const roleName = (userData?.role?.name ?? "").toUpperCase();
-        const email = userData?.email;
+        const email = userData?.email ?? "";
         const isSuperAdmin = email === 'admin@gmail.com' || roleName === 'SUPER_ADMIN' || roleName.includes('ADMIN');
         if (isSuperAdmin) return '/admin';
 
-        const isCandidate = roleName === 'USER' || roleName === 'NORMAL_USER' || roleName === 'CANDIDATE';
-        if (isCandidate) return '/';
-
-        const isHR = roleName === 'HR' || roleName.includes('HR') || (Boolean(userData?.company?.id) && Boolean(userData?.role?.permissions?.length));
+        const isHR = roleName === 'HR' || roleName.includes('HR');
         if (isHR) return '/hr';
 
+        // Mặc định tất cả tài khoản ứng viên / người dùng bình thường đều về trang chủ '/'
         return '/';
     };
 
@@ -60,12 +58,30 @@ const LoginPage = () => {
             dispatch(setUserLoginInfo(res.data.user));
             message.success('Đăng nhập tài khoản thành công!');
 
+            const roleName = (res.data.user?.role?.name ?? "").toUpperCase();
+            const isSuperAdmin = res.data.user?.email === 'admin@gmail.com' || roleName === 'SUPER_ADMIN' || roleName.includes('ADMIN');
+            const isHR = roleName === 'HR' || roleName.includes('HR');
+
             if (callback && callback !== '/login') {
+                const isPrivilegedRoute = callback.startsWith('/admin') || callback.startsWith('/hr');
+                if (isPrivilegedRoute) {
+                    if (isSuperAdmin) {
+                        window.location.href = callback.startsWith('/admin') ? callback : '/admin';
+                        return;
+                    }
+                    if (isHR) {
+                        window.location.href = callback.startsWith('/hr') ? callback : '/hr';
+                        return;
+                    }
+                    // Tài khoản thường không được truy cập /admin hoặc /hr -> chuyển hướng về trang chủ
+                    window.location.href = '/';
+                    return;
+                }
                 window.location.href = callback;
                 return;
             }
 
-            // Tự động chuyển hướng tới /admin nếu là Admin, /hr nếu là HR
+            // Tự động chuyển hướng đúng theo vai trò
             window.location.href = getRedirectUrl(res.data.user);
         } else {
             let errorMsg = res?.message && Array.isArray(res.message) ? res.message[0] : res?.message;

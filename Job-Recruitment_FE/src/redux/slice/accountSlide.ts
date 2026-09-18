@@ -77,15 +77,16 @@ export const accountSlide = createSlice({
         setUserLoginInfo: (state, action) => {
             state.isAuthenticated = true;
             state.isLoading = false;
-            state.user.id = action?.payload?.id;
-            state.user.email = action.payload.email;
-            state.user.name = action.payload.name;
+            state.user.id = action?.payload?.id ?? "";
+            state.user.email = action?.payload?.email ?? "";
+            state.user.name = action?.payload?.name ?? "";
             state.user.avatar = action?.payload?.avatar ?? state.user.avatar;
-            state.user.role = action?.payload?.role;
+            state.user.role = action?.payload?.role ?? { id: "", name: "", permissions: [] };
             state.user.company = action?.payload?.company;
 
-            if (!action?.payload?.user?.role) state.user.role = {};
-            state.user.role.permissions = action?.payload?.role?.permissions ?? [];
+            if (!state.user.role.permissions) {
+                state.user.role.permissions = [];
+            }
         },
         setLogoutAction: (state, action) => {
             localStorage.removeItem('access_token');
@@ -120,16 +121,19 @@ export const accountSlide = createSlice({
 
         builder.addCase(fetchAccount.fulfilled, (state, action) => {
             if (action.payload) {
+                const u = action.payload.user;
                 state.isAuthenticated = true;
                 state.isLoading = false;
-                state.user.id = action?.payload?.user?.id;
-                state.user.email = action.payload.user?.email;
-                state.user.name = action.payload.user?.name;
-                state.user.avatar = action.payload.user?.avatar;
-                state.user.role = action?.payload?.user?.role;
-                state.user.company = action?.payload?.user?.company;
-                if (!action?.payload?.user?.role) state.user.role = {};
-                state.user.role.permissions = action?.payload?.user?.role?.permissions ?? [];
+                state.user.id = u?.id ?? "";
+                state.user.email = u?.email ?? "";
+                state.user.name = u?.name ?? "";
+                state.user.avatar = u?.avatar ?? "";
+                state.user.role = u?.role ?? { id: "", name: "", permissions: [] };
+                state.user.company = u?.company;
+
+                if (!state.user.role.permissions) {
+                    state.user.role.permissions = [];
+                }
             }
         })
 

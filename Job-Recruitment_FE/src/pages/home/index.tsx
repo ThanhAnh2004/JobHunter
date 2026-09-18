@@ -8,7 +8,6 @@ import HotCategories from '@/components/client/home/hot-categories';
 import CareerToolkit from '@/components/client/home/career-toolkit';
 import StatsCounter from '@/components/client/home/stats-counter';
 import CareerBlog from '@/components/client/home/career-blog';
-import RecruiterBanner from '@/components/client/home/recruiter-banner';
 import { useAppSelector } from '@/redux/hooks';
 import { FireFilled, ThunderboltFilled, StarFilled } from '@ant-design/icons';
 
@@ -99,10 +98,7 @@ const HomePage = () => {
                 {/* 6. SỐ LIỆU THỐNG KÊ UY TÍN */}
                 <StatsCounter />
 
-                {/* 7. BANNER KÊU GỌI NHÀ TUYỂN DỤNG */}
-                <RecruiterBanner />
-
-                {/* 8. CẨM NANG NGHỀ NGHIỆP & PHỎNG VẤN */}
+                {/* 7. CẨM NANG NGHỀ NGHIỆP & PHỎNG VẤN */}
                 <CareerBlog />
             </div>
         </div>

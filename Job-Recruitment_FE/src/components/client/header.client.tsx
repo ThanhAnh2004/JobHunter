@@ -69,8 +69,7 @@ const Header = (props: any) => {
 
     const roleName = (user?.role?.name ?? "").toUpperCase();
     const isSuperAdmin = user?.email === 'admin@gmail.com' || roleName === 'SUPER_ADMIN' || roleName.includes('ADMIN');
-    const isCandidate = roleName === 'USER' || roleName === 'NORMAL_USER' || roleName === 'CANDIDATE';
-    const isHR = !isCandidate && !isSuperAdmin && (roleName === 'HR' || roleName.includes('HR') || (Boolean(user?.company?.id) && Boolean(user?.role?.permissions?.length)));
+    const isHR = roleName === 'HR' || roleName.includes('HR');
 
     const itemsDropdown = [
         {
