@@ -7,7 +7,8 @@ import {
     DollarOutlined, 
     RiseOutlined, 
     AppstoreOutlined,
-    SortAscendingOutlined
+    SortAscendingOutlined,
+    CheckOutlined
 } from '@ant-design/icons';
 import styles from 'styles/client.module.scss';
 import JobCard from '@/components/client/card/job.card';
@@ -79,7 +80,7 @@ const ClientJobPage = (props: any) => {
                     <div className={styles["filter-sidebar-panel"]}>
                         <div className={styles["filter-header"]}>
                             <h3 className={styles["filter-title"]}>
-                                <FilterOutlined style={{ color: '#2563eb' }} /> Lọc Nâng Cao
+                                <FilterOutlined style={{ color: '#38bdf8' }} /> Lọc Nâng Cao
                             </h3>
                             <button
                                 onClick={handleResetAll}
@@ -93,9 +94,9 @@ const ClientJobPage = (props: any) => {
                         {/* 1. LỌC THEO CẤP BẬC / KINH NGHIỆM */}
                         <div className={styles["filter-section"]}>
                             <div className={styles["section-label"]}>
-                                <span><RiseOutlined style={{ marginRight: 6, color: '#64748b' }} /> Cấp bậc / Level</span>
+                                <span><RiseOutlined style={{ marginRight: 6, color: '#38bdf8' }} /> Cấp bậc / Level</span>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 {LEVEL_OPTIONS.map(lvl => {
                                     const isActive = currentLevel.split(',').includes(lvl.value);
                                     return (
@@ -104,22 +105,24 @@ const ClientJobPage = (props: any) => {
                                             onClick={() => handleFilterChange('level', lvl.value)}
                                             className={`${styles["option-item"]} ${isActive ? styles["active"] : ""}`}
                                         >
-                                            <span>{lvl.label}</span>
-                                            {isActive && <Tag color="blue" style={{ margin: 0, fontSize: 10 }}>✓</Tag>}
+                                            <span className={styles["option-label"]}>{lvl.label}</span>
+                                            <div className={`${styles["filter-checkbox"]} ${isActive ? styles["checked"] : ""}`}>
+                                                {isActive && <CheckOutlined />}
+                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        <Divider style={{ margin: '14px 0' }} />
+                        <Divider style={{ margin: '14px 0', borderColor: 'rgba(255, 255, 255, 0.08)' }} />
 
                         {/* 2. LỌC THEO MỨC LƯƠNG */}
                         <div className={styles["filter-section"]}>
                             <div className={styles["section-label"]}>
-                                <span><DollarOutlined style={{ marginRight: 6, color: '#64748b' }} /> Khoảng Mức Lương</span>
+                                <span><DollarOutlined style={{ marginRight: 6, color: '#34d399' }} /> Khoảng Mức Lương</span>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 {SALARY_OPTIONS.map(sal => {
                                     const isActive = currentSalary === sal.value;
                                     return (
@@ -128,22 +131,24 @@ const ClientJobPage = (props: any) => {
                                             onClick={() => handleFilterChange('salary', sal.value)}
                                             className={`${styles["option-item"]} ${isActive ? styles["active"] : ""}`}
                                         >
-                                            <span>{sal.label}</span>
-                                            {isActive && <Tag color="green" style={{ margin: 0, fontSize: 10 }}>✓</Tag>}
+                                            <span className={styles["option-label"]}>{sal.label}</span>
+                                            <div className={`${styles["filter-checkbox"]} ${isActive ? styles["checked"] : ""}`}>
+                                                {isActive && <CheckOutlined />}
+                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        <Divider style={{ margin: '14px 0' }} />
+                        <Divider style={{ margin: '14px 0', borderColor: 'rgba(255, 255, 255, 0.08)' }} />
 
                         {/* 3. LỌC THEO ĐỊA ĐIỂM */}
                         <div className={styles["filter-section"]}>
                             <div className={styles["section-label"]}>
-                                <span><EnvironmentOutlined style={{ marginRight: 6, color: '#64748b' }} /> Địa Điểm Làm Việc</span>
+                                <span><EnvironmentOutlined style={{ marginRight: 6, color: '#fbbf24' }} /> Địa Điểm Làm Việc</span>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 {LOCATION_LIST.map(loc => {
                                     const isActive = currentLocation.split(',').includes(loc.value);
                                     return (
@@ -152,22 +157,24 @@ const ClientJobPage = (props: any) => {
                                             onClick={() => handleFilterChange('location', loc.value)}
                                             className={`${styles["option-item"]} ${isActive ? styles["active"] : ""}`}
                                         >
-                                            <span>{loc.label}</span>
-                                            {isActive && <Tag color="purple" style={{ margin: 0, fontSize: 10 }}>✓</Tag>}
+                                            <span className={styles["option-label"]}>{loc.label}</span>
+                                            <div className={`${styles["filter-checkbox"]} ${isActive ? styles["checked"] : ""}`}>
+                                                {isActive && <CheckOutlined />}
+                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        <Divider style={{ margin: '14px 0' }} />
+                        <Divider style={{ margin: '14px 0', borderColor: 'rgba(255, 255, 255, 0.08)' }} />
 
                         {/* 4. LỌC THEO DANH MỤC NGHỀ */}
                         <div className={styles["filter-section"]} style={{ marginBottom: 0 }}>
                             <div className={styles["section-label"]}>
-                                <span><AppstoreOutlined style={{ marginRight: 6, color: '#64748b' }} /> Danh Mục Ngành Nghề</span>
+                                <span><AppstoreOutlined style={{ marginRight: 6, color: '#a78bfa' }} /> Danh Mục Ngành Nghề</span>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 {CATEGORY_LIST.slice(0, 6).map(cat => {
                                     const isActive = currentCategory === cat.id;
                                     return (
@@ -177,10 +184,12 @@ const ClientJobPage = (props: any) => {
                                             className={`${styles["option-item"]} ${isActive ? styles["active"] : ""}`}
                                             title={cat.name}
                                         >
-                                            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            <span className={styles["option-label"]}>
                                                 {cat.name.split('(')[0].trim()}
                                             </span>
-                                            {isActive && <Tag color="blue" style={{ margin: 0, fontSize: 10 }}>✓</Tag>}
+                                            <div className={`${styles["filter-checkbox"]} ${isActive ? styles["checked"] : ""}`}>
+                                                {isActive && <CheckOutlined />}
+                                            </div>
                                         </div>
                                     );
                                 })}
