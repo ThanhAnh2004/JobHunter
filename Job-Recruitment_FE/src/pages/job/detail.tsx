@@ -2,7 +2,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from "react-rout
 import { useState, useEffect } from 'react';
 import { IJob } from "@/types/backend";
 import { callFetchJobById } from "@/config/api";
-import { withBackendUrl } from "@/config/runtime";
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from "@/config/runtime";
 import styles from 'styles/client.module.scss';
 import parse from 'html-react-parser';
 import { Col, Divider, Row, Skeleton, Tag, Button } from "antd";
@@ -122,8 +122,14 @@ const ClientJobDetailPage = (props: any) => {
                                     <div>
                                         <img
                                             width={"200px"}
-                                            alt="example"
-                                    src={withBackendUrl(`/storage/company/${jobDetail.company?.logo}`)}
+                                            alt={jobDetail.company?.name || 'Company'}
+                                            src={getCompanyLogoUrl(jobDetail.company?.logo)}
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                if (target.src !== DEFAULT_COMPANY_LOGO) {
+                                                    target.src = DEFAULT_COMPANY_LOGO;
+                                                }
+                                            }}
                                         />
                                     </div>
                                     <div>

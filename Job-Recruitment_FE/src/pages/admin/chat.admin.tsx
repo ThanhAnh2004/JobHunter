@@ -7,7 +7,7 @@ import ConversationList from '@/components/chat/conversation.list';
 import ChatBox from '@/components/chat/chat.box';
 import { Spin, Button, Modal, Select, notification, Space, Typography, Avatar } from 'antd';
 import { MessageOutlined, PlusOutlined, BankOutlined, ReloadOutlined } from '@ant-design/icons';
-import { withBackendUrl } from '@/config/runtime';
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from '@/config/runtime';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import '@/styles/chat.scss';
@@ -318,10 +318,11 @@ const AdminChatPage: React.FC = () => {
                             return (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0' }}>
                                     <Avatar
-                                        src={comp.logo ? withBackendUrl(`/storage/company/${comp.logo}`) : undefined}
+                                        src={getCompanyLogoUrl(comp.logo)}
                                         icon={<BankOutlined />}
                                         shape="square"
                                         size={28}
+                                        onError={() => false}
                                         style={{ background: '#f1f5f9', color: '#64748b' }}
                                     />
                                     <div>

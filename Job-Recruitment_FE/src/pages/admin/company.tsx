@@ -25,7 +25,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { callDeleteCompany, callFetchCompanyById, callCreateOrGetConversation } from "@/config/api";
-import { withBackendUrl } from "@/config/runtime";
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from "@/config/runtime";
 import queryString from 'query-string';
 import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
@@ -144,7 +144,7 @@ const CompanyPage = () => {
             align: 'center',
             hideInSearch: true,
             render: (_text, record) => {
-                return record.logo ? (
+                return (
                     <div style={{
                         width: 44,
                         height: 44,
@@ -158,23 +158,16 @@ const CompanyPage = () => {
                         padding: 2
                     }}>
                         <img
-                            src={withBackendUrl(`/storage/company/${record.logo}`)}
+                            src={getCompanyLogoUrl(record.logo)}
                             alt={record.name}
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (target.src !== DEFAULT_COMPANY_LOGO) {
+                                    target.src = DEFAULT_COMPANY_LOGO;
+                                }
+                            }}
                             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                         />
-                    </div>
-                ) : (
-                    <div style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 8,
-                        background: '#f1f5f9',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#94a3b8'
-                    }}>
-                        <BankOutlined style={{ fontSize: 20 }} />
                     </div>
                 );
             }
@@ -423,15 +416,12 @@ const CompanyPage = () => {
                                             border: '2px solid rgba(255, 255, 255, 0.8)',
                                             flexShrink: 0
                                         }}>
-                                            {currentCompany.logo ? (
-                                                <Image
-                                                    src={withBackendUrl(`/storage/company/${currentCompany.logo}`)}
-                                                    alt={currentCompany.name}
-                                                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                                />
-                                            ) : (
-                                                <BankOutlined style={{ fontSize: 44, color: '#2563eb' }} />
-                                            )}
+                                            <Image
+                                                src={getCompanyLogoUrl(currentCompany.logo)}
+                                                fallback={DEFAULT_COMPANY_LOGO}
+                                                alt={currentCompany.name}
+                                                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                            />
                                         </div>
 
                                         <div>

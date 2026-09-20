@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { IConversation } from '@/types/backend';
 import { Input, Avatar, Badge, Empty } from 'antd';
 import { SearchOutlined, UserOutlined, BankOutlined } from '@ant-design/icons';
-import { withBackendUrl } from '@/config/runtime';
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from '@/config/runtime';
 import { formatRelativeTime } from '@/config/utils';
 
 interface IProps {
@@ -63,6 +63,7 @@ const ConversationList: React.FC<IProps> = ({
                                             <Avatar
                                                 src={withBackendUrl(`/storage/avatar/${candidateAvatar}`)}
                                                 size={44}
+                                                onError={() => false}
                                                 style={{ border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}
                                             >
                                                 {partnerName ? partnerName.substring(0, 2).toUpperCase() : 'U'}
@@ -76,21 +77,15 @@ const ConversationList: React.FC<IProps> = ({
                                             </Avatar>
                                         )
                                     ) : (
-                                        companyLogo ? (
-                                            <Avatar
-                                                src={withBackendUrl(`/storage/company/${companyLogo}`)}
-                                                size={44}
-                                                shape="square"
-                                                style={{ borderRadius: 10, background: '#fff', border: '1px solid #e2e8f0' }}
-                                            />
-                                        ) : (
-                                            <Avatar
-                                                size={44}
-                                                style={{ backgroundColor: '#10b981', borderRadius: 10, fontWeight: 600, fontSize: 16 }}
-                                            >
-                                                {partnerName ? partnerName.substring(0, 2).toUpperCase() : <BankOutlined />}
-                                            </Avatar>
-                                        )
+                                        <Avatar
+                                            src={getCompanyLogoUrl(companyLogo)}
+                                            size={44}
+                                            shape="square"
+                                            onError={() => false}
+                                            style={{ borderRadius: 10, background: '#fff', border: '1px solid #e2e8f0' }}
+                                        >
+                                            {partnerName ? partnerName.substring(0, 2).toUpperCase() : <BankOutlined />}
+                                        </Avatar>
                                     )}
                                 </div>
 

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <rect width="400" height="400" rx="40" fill="#ffffff"/>
+  <g transform="translate(60, 80)">
+    <!-- 3 Colored Ribbon Ovals of FPT -->
+    <ellipse cx="65" cy="80" rx="35" ry="60" transform="rotate(-30 65 80)" fill="#F37021"/>
+    <ellipse cx="140" cy="80" rx="35" ry="60" transform="rotate(-30 140 80)" fill="#005BAA"/>
+    <ellipse cx="215" cy="80" rx="35" ry="60" transform="rotate(-30 215 80)" fill="#5BB847"/>
+    
+    <!-- FPT Text in white on ribbons -->
+    <text x="50" y="92" font-family="'Arial Black', Impact, sans-serif" font-size="34" font-weight="900" fill="#ffffff" font-style="italic">F</text>
+    <text x="125" y="92" font-family="'Arial Black', Impact, sans-serif" font-size="34" font-weight="900" fill="#ffffff" font-style="italic">P</text>
+    <text x="202" y="92" font-family="'Arial Black', Impact, sans-serif" font-size="34" font-weight="900" fill="#ffffff" font-style="italic">T</text>
+  </g>
+  <text x="200" y="295" font-family="'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="800" fill="#005BAA" text-anchor="middle" letter-spacing="3">SOFTWARE</text>
+</svg>

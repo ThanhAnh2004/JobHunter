@@ -14,7 +14,7 @@ import {
     SearchOutlined,
     ExportOutlined
 } from '@ant-design/icons';
-import { withBackendUrl } from '@/config/runtime';
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from '@/config/runtime';
 import { formatRelativeTime } from '@/config/utils';
 import ChatBox from './chat.box';
 import SockJS from 'sockjs-client';
@@ -169,15 +169,14 @@ const FloatingChatWidget: React.FC = () => {
                                                     {selectedConv.candidateName ? selectedConv.candidateName.substring(0, 2).toUpperCase() : <UserOutlined />}
                                                 </Avatar>
                                             )
-                                        ) : selectedConv.companyLogo ? (
+                                        ) : (
                                             <Avatar
-                                                src={withBackendUrl(`/storage/company/${selectedConv.companyLogo}`)}
+                                                src={getCompanyLogoUrl(selectedConv.companyLogo)}
                                                 size={34}
                                                 shape="square"
+                                                onError={() => false}
                                                 style={{ borderRadius: 6, background: '#fff', border: '1px solid #e2e8f0' }}
-                                            />
-                                        ) : (
-                                            <Avatar size={34} style={{ backgroundColor: '#10b981', borderRadius: 6, fontWeight: 600 }}>
+                                            >
                                                 {selectedConv.companyName ? selectedConv.companyName.substring(0, 2).toUpperCase() : <BankOutlined />}
                                             </Avatar>
                                         )}
@@ -275,17 +274,13 @@ const FloatingChatWidget: React.FC = () => {
                                                                     {partnerName ? partnerName.substring(0, 2).toUpperCase() : <UserOutlined />}
                                                                 </Avatar>
                                                             )
-                                                        ) : companyLogo ? (
-                                                            <Avatar
-                                                                src={withBackendUrl(`/storage/company/${companyLogo}`)}
-                                                                size={42}
-                                                                shape="square"
-                                                                style={{ borderRadius: 8, background: '#fff', border: '1px solid #e2e8f0' }}
-                                                            />
                                                         ) : (
                                                             <Avatar
+                                                                src={getCompanyLogoUrl(companyLogo)}
                                                                 size={42}
-                                                                style={{ backgroundColor: '#10b981', borderRadius: 8, fontWeight: 600 }}
+                                                                shape="square"
+                                                                onError={() => false}
+                                                                style={{ borderRadius: 8, background: '#fff', border: '1px solid #e2e8f0' }}
                                                             >
                                                                 {partnerName ? partnerName.substring(0, 2).toUpperCase() : <BankOutlined />}
                                                             </Avatar>

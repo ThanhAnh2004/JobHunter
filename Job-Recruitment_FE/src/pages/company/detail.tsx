@@ -2,7 +2,7 @@ import { useLocation, useNavigate, useParams, useSearchParams, Link } from "reac
 import { useState, useEffect } from 'react';
 import { ICompany, IJob } from "@/types/backend";
 import { callFetchCompanyById, callFetchJob } from "@/config/api";
-import { withBackendUrl } from "@/config/runtime";
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from "@/config/runtime";
 import styles from 'styles/client.module.scss';
 import parse from 'html-react-parser';
 import { Col, Divider, Row, Skeleton, Tag, Button, Card, Breadcrumb, Empty } from "antd";
@@ -133,15 +133,17 @@ const ClientCompanyDetailPage = () => {
                                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.04)',
                                         flexShrink: 0
                                     }}>
-                                        {companyDetail.logo ? (
-                                            <img
-                                                src={withBackendUrl(`/storage/company/${companyDetail.logo}`)}
-                                                alt={companyDetail.name}
-                                                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                            />
-                                        ) : (
-                                            <BankOutlined style={{ fontSize: 44, color: '#2563eb' }} />
-                                        )}
+                                        <img
+                                            src={getCompanyLogoUrl(companyDetail.logo)}
+                                            alt={companyDetail.name}
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                if (target.src !== DEFAULT_COMPANY_LOGO) {
+                                                    target.src = DEFAULT_COMPANY_LOGO;
+                                                }
+                                            }}
+                                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                        />
                                     </div>
 
                                     <div>

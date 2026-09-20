@@ -4,7 +4,7 @@ import { callFetchMessages, callSendMessage, callMarkConversationAsRead } from '
 import { useAppSelector } from '@/redux/hooks';
 import { Input, Button, Avatar, Spin, Empty, Tooltip } from 'antd';
 import { SendOutlined, UserOutlined, BankOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { withBackendUrl } from '@/config/runtime';
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from '@/config/runtime';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import dayjs from 'dayjs';
@@ -211,21 +211,15 @@ const ChatBox: React.FC<IProps> = ({ conversation, isHrView = false, onMessageSe
                             </Avatar>
                         )
                     ) : (
-                        companyLogo ? (
-                            <Avatar
-                                src={withBackendUrl(`/storage/company/${companyLogo}`)}
-                                size={44}
-                                shape="square"
-                                style={{ borderRadius: 10, background: '#fff', border: '1px solid #e2e8f0' }}
-                            />
-                        ) : (
-                            <Avatar
-                                size={44}
-                                style={{ backgroundColor: '#10b981', borderRadius: 10, fontWeight: 600, fontSize: 16 }}
-                            >
-                                {partnerName ? partnerName.substring(0, 2).toUpperCase() : <BankOutlined />}
-                            </Avatar>
-                        )
+                        <Avatar
+                            src={getCompanyLogoUrl(companyLogo)}
+                            size={44}
+                            shape="square"
+                            onError={() => false}
+                            style={{ borderRadius: 10, background: '#fff', border: '1px solid #e2e8f0' }}
+                        >
+                            {partnerName ? partnerName.substring(0, 2).toUpperCase() : <BankOutlined />}
+                        </Avatar>
                     )}
                     <div>
                         <div className="partner-name">{partnerName || 'Chưa cập nhật tên'}</div>
@@ -270,7 +264,7 @@ const ChatBox: React.FC<IProps> = ({ conversation, isHrView = false, onMessageSe
                             } else if (isHrView && candidateAvatar) {
                                 msgAvatarSrc = withBackendUrl(`/storage/avatar/${candidateAvatar}`);
                             } else if (!isHrView && companyLogo) {
-                                msgAvatarSrc = withBackendUrl(`/storage/company/${companyLogo}`);
+                                msgAvatarSrc = getCompanyLogoUrl(companyLogo);
                             }
                         }
 
@@ -283,6 +277,7 @@ const ChatBox: React.FC<IProps> = ({ conversation, isHrView = false, onMessageSe
                                     <Avatar
                                         size={34}
                                         src={msgAvatarSrc || undefined}
+                                        onError={() => false}
                                         style={{
                                             backgroundColor: isHrView ? '#3b82f6' : '#10b981',
                                             fontSize: 12,

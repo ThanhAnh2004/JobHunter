@@ -1,5 +1,5 @@
 import { callFetchAllSkill, callFetchJob, callFetchSubscriberSkills } from '@/config/api';
-import { withBackendUrl } from '@/config/runtime';
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from '@/config/runtime';
 import { convertSlug, formatRelativeTime, getCategoryById, getLocationName } from '@/config/utils';
 import { IJob } from '@/types/backend';
 import { 
@@ -414,8 +414,14 @@ const JobCard = (props: IProps) => {
                                             <div className={styles["topcv-body"]}>
                                                 <div className={styles["topcv-logo-wrapper"]}>
                                                     <img
-                                                        alt={item.company?.name}
-                                                        src={withBackendUrl(`/storage/company/${item?.company?.logo}`)}
+                                                        alt={item.company?.name || 'Company'}
+                                                        src={getCompanyLogoUrl(item?.company?.logo)}
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            if (target.src !== DEFAULT_COMPANY_LOGO) {
+                                                                target.src = DEFAULT_COMPANY_LOGO;
+                                                            }
+                                                        }}
                                                     />
                                                 </div>
 
@@ -516,8 +522,14 @@ const JobCard = (props: IProps) => {
                                         <div className={styles["card-body"]}>
                                             <div className={styles["logo-left"]}>
                                                 <img
-                                                    alt={item.company?.name}
-                                                    src={withBackendUrl(`/storage/company/${item?.company?.logo}`)}
+                                                    alt={item.company?.name || 'Company'}
+                                                    src={getCompanyLogoUrl(item?.company?.logo)}
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        if (target.src !== DEFAULT_COMPANY_LOGO) {
+                                                            target.src = DEFAULT_COMPANY_LOGO;
+                                                        }
+                                                    }}
                                                 />
                                             </div>
                                             <div className={styles["content-right"]}>

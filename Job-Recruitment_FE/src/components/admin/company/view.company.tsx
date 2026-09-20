@@ -1,7 +1,7 @@
 import { ICompany } from "@/types/backend";
 import { Badge, Descriptions, Drawer, Image, Typography, Divider, Card, Button, notification } from "antd";
 import dayjs from 'dayjs';
-import { withBackendUrl } from "@/config/runtime";
+import { withBackendUrl, DEFAULT_COMPANY_LOGO, getCompanyLogoUrl } from "@/config/runtime";
 import parse from 'html-react-parser';
 import { cleanHtmlDescription } from "@/config/utils";
 import { BankOutlined, EnvironmentOutlined, CalendarOutlined, FileTextOutlined, MessageOutlined } from "@ant-design/icons";
@@ -86,15 +86,12 @@ const ViewDetailCompany = (props: IProps) => {
                                 overflow: 'hidden',
                                 flexShrink: 0
                             }}>
-                                {dataInit.logo ? (
-                                    <Image
-                                        src={withBackendUrl(`/storage/company/${dataInit.logo}`)}
-                                        alt={dataInit.name}
-                                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                    />
-                                ) : (
-                                    <BankOutlined style={{ fontSize: 32, color: '#94a3b8' }} />
-                                )}
+                                <Image
+                                    src={getCompanyLogoUrl(dataInit?.logo)}
+                                    fallback={DEFAULT_COMPANY_LOGO}
+                                    alt={dataInit?.name}
+                                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                />
                             </div>
                             <div>
                                 <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
