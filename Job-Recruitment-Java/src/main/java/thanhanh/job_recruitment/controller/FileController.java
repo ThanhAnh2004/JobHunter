@@ -26,9 +26,6 @@ public class FileController {
 
     private final FileService fileService;
 
-    @Value("${upload-file.base-uri}")
-    private String baseURI;
-
     public FileController(FileService fileService) {
         this.fileService = fileService;
     }
@@ -55,7 +52,7 @@ public class FileController {
 
 
         // create a directory if not exists
-        this.fileService.createDirectory(baseURI + folder);
+        this.fileService.createDirectory(folder);
         // store file
         String uploadFile = this.fileService.storeFile(file, folder);
         boolean isValid = allowedExtensions.stream().anyMatch(item

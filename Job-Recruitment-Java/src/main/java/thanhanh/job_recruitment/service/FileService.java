@@ -16,22 +16,57 @@ import java.nio.file.StandardCopyOption;
 @Service
 public class FileService {
 
-    @Value("${upload-file.base-uri}")
+    @Value("${upload-file.base-uri:}")
     private String baseURI;
 
-    public void createDirectory(String folder) throws URISyntaxException {
-        URI uri = new URI(folder);
-        Path path = Paths.get(uri);
-        File tmpDir = new File(path.toString());
-        if (!tmpDir.isDirectory()) {
-            try {
-                Files.createDirectories(tmpDir.toPath());
-                System.out.println(">>> CREATE NEW DIRECTORY SUCCESSFUL, PATH = " + tmpDir.toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
+    public Path getResolvedBasePath() {
+        if (baseURI != null && !baseURI.trim().isEmpty()) {
+            String uriStr = baseURI.trim();
+            if (uriStr.startsWith("file:///")) {
+                try {
+                    return Paths.get(new URI(uriStr));
+                } catch (Exception e) {
+                    return Paths.get(uriStr.substring(8));
+                }
+            } else if (uriStr.startsWith("file:/")) {
+                try {
+                    return Paths.get(new URI(uriStr));
+                } catch (Exception e) {
+                    return Paths.get(uriStr.substring(6));
+                }
+            } else if (uriStr.startsWith("file:")) {
+                String pathPart = uriStr.substring(5);
+                if ("./upload/".equals(pathPart) || "./upload".equals(pathPart) || "upload/".equals(pathPart) || "upload".equals(pathPart)) {
+                    File backendDir = new File("Job-Recruitment-Java");
+                    if (backendDir.isDirectory()) {
+                        return Paths.get("Job-Recruitment-Java", "upload");
+                    }
+                }
+                return Paths.get(pathPart);
+            } else {
+                return Paths.get(uriStr);
             }
+        }
+        File backendDir = new File("Job-Recruitment-Java");
+        if (backendDir.isDirectory()) {
+            return Paths.get("Job-Recruitment-Java", "upload");
+        }
+        return Paths.get("upload");
+    }
+
+    public void createDirectory(String folder) throws URISyntaxException, IOException {
+        Path targetDir;
+        if (folder != null && (folder.startsWith("file:") || folder.contains(":\\") || folder.contains(":/"))) {
+            targetDir = folder.startsWith("file:") ? Paths.get(new URI(folder)) : Paths.get(folder);
         } else {
-            System.out.println(">>> SKIP MAKING DIRECTORY, ALREADY EXISTS");
+            targetDir = getResolvedBasePath();
+            if (folder != null && !folder.trim().isEmpty()) {
+                targetDir = targetDir.resolve(folder.trim());
+            }
+        }
+        if (!Files.exists(targetDir)) {
+            Files.createDirectories(targetDir);
+            System.out.println(">>> CREATE NEW DIRECTORY SUCCESSFUL, PATH = " + targetDir.toAbsolutePath());
         }
     }
 
@@ -59,23 +94,27 @@ public class FileService {
         long randomSuffix = System.currentTimeMillis() + (long)(Math.random() * 90000 + 10000);
         String finalName = baseName + "_" + randomSuffix + extension;
 
-        URI uri = new URI(baseURI + folder + "/" + finalName);
-        Path path = Paths.get(uri);
-        if (path.getParent() != null && !Files.exists(path.getParent())) {
-            Files.createDirectories(path.getParent());
+        Path targetDir = getResolvedBasePath();
+        if (folder != null && !folder.trim().isEmpty()) {
+            targetDir = targetDir.resolve(folder.trim());
         }
+        if (!Files.exists(targetDir)) {
+            Files.createDirectories(targetDir);
+        }
+        Path targetPath = targetDir.resolve(finalName);
         try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, path,
-                    StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
         }
         return finalName;
     }
 
     public long getFileLength(String fileName, String folder) throws URISyntaxException {
-        URI uri = new URI(baseURI + folder + "/" + fileName);
-        Path path = Paths.get(uri);
-
-        File tmpDir = new File(path.toString());
+        Path targetDir = getResolvedBasePath();
+        if (folder != null && !folder.trim().isEmpty()) {
+            targetDir = targetDir.resolve(folder.trim());
+        }
+        Path targetPath = targetDir.resolve(fileName);
+        File tmpDir = targetPath.toFile();
 
         // file không tồn tại, hoặc file là 1 director => return 0
         if (!tmpDir.exists() || tmpDir.isDirectory())
@@ -85,10 +124,15 @@ public class FileService {
 
     public InputStreamResource getResource(String fileName, String folder)
             throws URISyntaxException, FileNotFoundException {
-        URI uri = new URI(baseURI + folder + "/" + fileName);
-        Path path = Paths.get(uri);
-
-        File file = new File(path.toString());
+        Path targetDir = getResolvedBasePath();
+        if (folder != null && !folder.trim().isEmpty()) {
+            targetDir = targetDir.resolve(folder.trim());
+        }
+        Path targetPath = targetDir.resolve(fileName);
+        File file = targetPath.toFile();
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found: " + fileName);
+        }
         return new InputStreamResource(new FileInputStream(file));
     }
 

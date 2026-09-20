@@ -27,11 +27,15 @@ public class StaticResourcesWebConfiguration implements WebMvcConfigurer {
         }
 
         locations.add("file:./upload/");
-        locations.add("file:../upload/");
+        locations.add("file:./Job-Recruitment-Java/upload/");
         locations.add("file:/app/upload/");
 
         try {
             String userDir = System.getProperty("user.dir");
+            File backendUpload = new File(userDir, "Job-Recruitment-Java/upload");
+            if (backendUpload.exists()) {
+                locations.add(backendUpload.toURI().toString());
+            }
             File localUpload = new File(userDir, "upload");
             if (localUpload.exists()) {
                 locations.add(localUpload.toURI().toString());

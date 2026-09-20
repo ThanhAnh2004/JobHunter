@@ -40,7 +40,7 @@ services:
       SPRING_MAIL_PASSWORD: ""
       GEMINI_API_KEY: ""
     volumes:
-      - ./upload:/app/upload
+      - ./Job-Recruitment-Java/upload:/app/upload
     networks:
       - jobhunter-net
 
